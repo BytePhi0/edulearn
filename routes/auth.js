@@ -1,3 +1,4 @@
+/* routes/auth.js */
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const db      = require('../config/database');
@@ -41,7 +42,7 @@ router.post('/register', async (req, res) => {
     return res.render('auth/auth', { error: 'Please fill all required fields.', role, mode: 'register' });
 
   try {
-    const [existing] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+    const { rows: existing } = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
     if (existing.length)
       return res.render('auth/auth', { error: 'Email already registered.', role, mode: 'register' });
 
@@ -70,7 +71,7 @@ router.post('/login', async (req, res) => {
     return res.render('auth/auth', { error: 'Please fill all required fields.', role, mode: 'login' });
 
   try {
-    const [users] = await db.execute('SELECT * FROM users WHERE email = ? AND role = ?', [email, role]);
+    const { rows: users } = await db.execute('SELECT * FROM users WHERE email = ? AND role = ?', [email, role]);
     if (!users.length)
       return res.render('auth/auth', { error: 'Invalid credentials.', role, mode: 'login' });
 
@@ -112,7 +113,7 @@ router.post('/verify-otp', async (req, res) => {
   if (!email || !otp || !role || !mode) return res.status(400).send('Bad request');
 
   try {
-    const [rows] = await db.execute(
+    const { rows } = await db.execute(
       'SELECT * FROM otp_verification WHERE email = ? AND otp = ? AND type = ? AND expires_at > NOW() AND is_used = 0',
       [email, otp, mode]
     );
@@ -122,27 +123,27 @@ router.post('/verify-otp', async (req, res) => {
     await db.execute('UPDATE otp_verification SET is_used = 1 WHERE id = ?', [rows[0].id]);
 
     if (mode === 'register') {
-      const tempUser = req.session.tempUser;
-      if (!tempUser || tempUser.email !== email)
+      const temp = req.session.tempUser;
+      if (!temp || temp.email !== email)
         return res.render('auth/auth', { error: 'Session expired. Please register again.', role, mode: 'register' });
 
-      const hashed = await bcrypt.hash(tempUser.password, 10);
+      const hashed = await bcrypt.hash(temp.password, 10);
       await db.execute(
         'INSERT INTO users (email, name, department, password, role) VALUES (?, ?, ?, ?, ?)',
-        [tempUser.email, tempUser.name, tempUser.department || null, hashed, tempUser.role]
+        [temp.email, temp.name, temp.department || null, hashed, temp.role]
       );
       delete req.session.tempUser;
       return res.redirect(`/auth?role=${role}&mode=login&success=registered`);
     }
 
     if (mode === 'login') {
-      const tempUser = req.session.tempUser;
-      if (!tempUser || tempUser.email !== email)
+      const temp = req.session.tempUser;
+      if (!temp || temp.email !== email)
         return res.render('auth/auth', { error: 'Session expired. Please login again.', role, mode: 'login' });
 
-      req.session.user = { id: tempUser.id, name: tempUser.name, role: tempUser.role };
+      req.session.user = { id: temp.id, name: temp.name, role: temp.role };
       delete req.session.tempUser;
-      return res.redirect(tempUser.role === 'lecturer' ? '/dashboard/lecturer' : '/dashboard/student');
+      return res.redirect(temp.role === 'lecturer' ? '/dashboard/lecturer' : '/dashboard/student');
     }
   } catch (err) {
     console.error(err);
