@@ -9,9 +9,9 @@ const router = express.Router();
 /* helper – thin wrapper so we write less boiler‑plate */
 const q = (sql, params = []) => db.query(sql, params);
 
-/* ------------------------------------------------------------------ */
-/*  GET /auth?role=lecturer|student[&mode=login|register][&success=…] */
-/* ------------------------------------------------------------------ */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  GET /auth?role=lecturer|student[&mode=login|register][&success=…]
+ * ──────────────────────────────────────────────────────────────────────── */
 router.get('/', (req, res) => {
   const role    = req.query.role;
   let   mode    = req.query.mode;
@@ -36,9 +36,9 @@ router.get('/', (req, res) => {
   });
 });
 
-/* ------------------------------------------------------------------ */
-/*  POST /auth/register                                                */
-/* ------------------------------------------------------------------ */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  POST /auth/register
+ * ──────────────────────────────────────────────────────────────────────── */
 router.post('/register', async (req, res) => {
   const { email, password, name, department, role } = req.body;
 
@@ -56,6 +56,9 @@ router.post('/register', async (req, res) => {
 
     /* store data in session until OTP verified */
     req.session.tempUser = { email, password, name, department, role };
+
+    /* ⬅️  make sure the session row is written BEFORE redirect  */
+    await new Promise(resolve => req.session.save(resolve));
 
     const otp = generateOTP();
     await q(
@@ -75,9 +78,9 @@ router.post('/register', async (req, res) => {
   }
 });
 
-/* ------------------------------------------------------------------ */
-/*  POST /auth/login                                                   */
-/* ------------------------------------------------------------------ */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  POST /auth/login
+ * ──────────────────────────────────────────────────────────────────────── */
 router.post('/login', async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -103,6 +106,9 @@ router.post('/login', async (req, res) => {
       id: user.id, email: user.email, role: user.role, name: user.name
     };
 
+    /* ⬅️  ensure session persisted before redirect  */
+    await new Promise(resolve => req.session.save(resolve));
+
     const otp = generateOTP();
     await q(
       `INSERT INTO otp_verification
@@ -121,9 +127,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/* ------------------------------------------------------------------ */
-/*  GET /auth/verify-otp (form)                                       */
-/* ------------------------------------------------------------------ */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  GET /auth/verify-otp  – show form
+ * ──────────────────────────────────────────────────────────────────────── */
 router.get('/verify-otp', (req, res) => {
   const { email, role, mode } = req.query;
   if (!email || !role || !mode)
@@ -133,9 +139,9 @@ router.get('/verify-otp', (req, res) => {
     { email, role, mode, error:null });
 });
 
-/* ------------------------------------------------------------------ */
-/*  POST /auth/verify-otp (form submit)                               */
-/* ------------------------------------------------------------------ */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  POST /auth/verify-otp – handle OTP submit
+ * ──────────────────────────────────────────────────────────────────────── */
 router.post('/verify-otp', async (req, res) => {
   const { email, otp, role, mode } = req.body;
   if (!email || !otp || !role || !mode)
@@ -185,6 +191,8 @@ router.post('/verify-otp', async (req, res) => {
       req.session.user = { id:tmp.id, name:tmp.name, role:tmp.role };
       delete req.session.tempUser;
 
+      await new Promise(resolve => req.session.save(resolve));  // paranoia
+
       return res.redirect(
         tmp.role === 'lecturer' ? '/dashboard/lecturer' : '/dashboard/student'
       );
@@ -199,9 +207,9 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-/* ------------------------------------------------------------------ */
-/*  POST /auth/resend-otp                                             */
-/* ------------------------------------------------------------------ */
+/* ──────────────────────────────────────────────────────────────────────────
+ *  POST /auth/resend-otp
+ * ──────────────────────────────────────────────────────────────────────── */
 router.post('/resend-otp', async (req, res) => {
   const { email, role, mode } = req.body;
   try {
