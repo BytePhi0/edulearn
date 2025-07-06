@@ -81,7 +81,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
 app.use(session({
-    // store: new PgStore({ pool: db }), 
+    store: new PgStore({ pool: db }), 
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
