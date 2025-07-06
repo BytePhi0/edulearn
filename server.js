@@ -68,7 +68,7 @@ app.use('/api/', limiter);
 // CORS configuration (for API endpoints)
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://yourdomain.com']
+        ? ['https://edulearn-zdst.onrender.com']
         : ['http://localhost:3000'],
     credentials: true
 }));
