@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>EduConnect - Lecturer Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <div id="lecturer-dashboard" class="page dashboard active">
+        <div class="dashboard-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>EduConnect</span>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" data-section="lecturer-overview"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="#" class="nav-item" data-section="lecturer-courses"><i class="fas fa-book"></i> My Courses</a>
+                    <a href="#" class="nav-item" data-section="lecturer-live-classes"><i class="fas fa-video"></i> Live Classes</a>
+                    <a href="#" class="nav-item" data-section="lecturer-whiteboard"><i class="fas fa-chalkboard"></i> Whiteboard</a>
+                    <a href="#" class="nav-item" data-section="lecturer-attendance"><i class="fas fa-clipboard-check"></i> Attendance</a>
+                    <a href="#" class="nav-item" data-section="lecturer-recordings"><i class="fas fa-play-circle"></i> Recordings</a>
+                    <a href="#" class="nav-item" data-section="lecturer-profile"><i class="fas fa-user"></i> Profile</a>
+                </nav>
+                <div class="sidebar-footer">
+                    <form action="/auth/logout" method="get">
+                        <button class="btn btn--outline btn--full-width" type="submit">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </aside>
+            <!-- Main Content -->
+            <main class="main-content">
+                <header class="main-header">
+                    <div class="header-left">
+                        <h1 id="page-title">Dashboard</h1>
+                        <p id="page-subtitle">Welcome back, <%= user.name %></p>
+                    </div>
+                    <div class="header-right">
+                        <form method="POST" action="/dashboard/lecturer/live-class" style="display:inline;">
+                            <button class="btn btn--primary" type="submit">
+                                <i class="fas fa-plus"></i> Start Live Class
+                            </button>
+                        </form>
+                        <div class="user-menu">
+                            <i class="fas fa-bell"></i>
+                            <div class="user-avatar">
+                                <%= user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) %>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <% if (error) { %>
+                    <div class="error-msg"><%= error %></div>
+                <% } %>
+
+                <!-- Dashboard Overview -->
+                <section id="lecturer-overview" class="content-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card card"><div class="card__body"><div class="stat-icon"><i class="fas fa-book"></i></div><div class="stat-content"><h3><%= stats.courses %></h3><p>Total Courses</p></div></div></div>
+                        <div class="stat-card card"><div class="card__body"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-content"><h3><%= stats.students %></h3><p>Total Students</p></div></div></div>
+                        <div class="stat-card card"><div class="card__body"><div class="stat-icon"><i class="fas fa-video"></i></div><div class="stat-content"><h3><%= stats.liveToday %></h3><p>Live Classes Today</p></div></div></div>
+                        <div class="stat-card card"><div class="card__body"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-content"><h3><%= stats.attendance %>%</h3><p>Avg. Attendance</p></div></div></div>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card__header"><h3>Upcoming Classes</h3></div>
+                            <div class="card__body">
+                                <% if (upcomingClasses && upcomingClasses.length) { %>
+                                    <ul>
+                                        <% upcomingClasses.forEach(function(cls) { %>
+                                            <li><%= cls.title %> - <%= cls.date %></li>
+                                        <% }); %>
+                                    </ul>
+                                <% } else { %>
+                                    <p>No upcoming classes.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                     <div class="card">
+  <div class="card__header"><h3>Recent Activity</h3></div>
+  <div class="card__body" id="recent-activity-list">
+    <% if (recentActivity && recentActivity.length) { %>
+      <% recentActivity.forEach(function(act, idx) { %>
+        <div class="activity-item" style="<%= idx >= 4 ? 'display:none;' : '' %>">
+          <i class="fas <%= act.icon %>"></i>
+          <span><%= act.text %></span>
+          <small><%= act.time %></small>
+        </div>
+      <% }); %>
+      <% if (recentActivity.length > 4) { %>
+        <button class="btn btn--sm btn--outline" id="show-more-activity">Next</button>
+      <% } %>
+    <% } else { %>
+      <p>No recent activity.</p>
+    <% } %>
+  </div>
+</div>
+
+                    <div class="card">
+                        <div class="card__header"><h3>Performance Analytics</h3></div>
+                        <div class="card__body">
+                            <canvas id="attendanceChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- My Courses Section -->
+                <section id="lecturer-courses" class="content-section">
+                    <h2>My Courses</h2>
+                    <form method="POST" action="/dashboard/lecturer/add-course" style="margin-bottom:20px;">
+                        <input type="text" name="title" placeholder="Course Title" required>
+                        <input type="text" name="code" placeholder="Course Code" required>
+                        <input type="number" name="enrolled" placeholder="Enrolled" min="0" required>
+                        <button class="btn btn--primary" type="submit"><i class="fas fa-plus"></i> Add Course</button>
+                    </form>
+                    <table class="courses-grid">
+                        <thead>
+                            <tr><th>Title</th><th>Code</th><th>Enrolled</th><th>Materials</th></tr>
+                        </thead>
+                        <tbody>
+                            <% courses.forEach(function(course){ %>
+                                <tr>
+                                    <td><%= course.title %></td>
+                                    <td><%= course.course_code %></td>
+                                    <td><%= course.enrolled %></td>
+                                    <td>
+                                        <!-- Upload material/assignment -->
+                                        <form method="POST" action="/dashboard/lecturer/course/<%= course.id %>/materials" enctype="multipart/form-data" style="display:inline;">
+                                            <input type="text" name="title" placeholder="Material Title" required style="width:120px;">
+                                            <select name="type">
+                                                <option value="material">Material</option>
+                                                <option value="assignment">Assignment</option>
+                                            </select>
+                                            <input type="file" name="file" required>
+                                            <button class="btn btn--sm btn--primary" type="submit"><i class="fas fa-upload"></i> Upload</button>
+                                        </form>
+                                        <ul class="materials-list">
+                                        <% (course.materials || []).forEach(function(mat){ %>
+                                            <li>
+                                                <i class="fas fa-file-alt"></i>
+                                                <a href="<%= mat.file_url %>" target="_blank"><%= mat.title %></a>
+                                                <span class="tag"><%= mat.type %></span>
+                                            </li>
+                                        <% }) %>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </section>
+<!-- Live Classes Section -->
+<section id="lecturer-live-classes" class="content-section">
+    <h2>Live Classes</h2>
+    <% if (roomUrl) { %>
+        <div class="video-meeting-container"
+             style="border-radius:12px; overflow:hidden; border:2px solid var(--color-primary); margin-bottom: 24px;">
+            <iframe
+                src="<%= roomUrl %>"
+                allow="camera; microphone; fullscreen; display-capture"
+                style="width: 100%; height: 600px; border: 0;"
+                title="Live Class Video Meeting"
+            ></iframe>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <span style="color: var(--color-text); font-weight: 500;">Share this link with students:</span>
+            <input type="text" readonly value="<%= roomUrl %>" style="width:60%; padding:8px; border-radius:6px; border:1px solid var(--color-border); background:var(--color-surface); color:var(--color-text); margin-left:8px;">
+            <a href="<%= roomUrl %>" target="_blank" class="btn btn--primary" style="margin-left:10px;">
+                <i class="fas fa-external-link-alt"></i> Open in New Tab
+            </a>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <span style="color: var(--color-info); font-size: 0.95em;">
+                <i class="fas fa-chalkboard"></i> Whiteboard and screen sharing are available in the meeting toolbar.
+            </span>
+        </div>
+        <form method="POST" action="/dashboard/lecturer/end-class" style="display:inline;">
+            <button class="btn btn--error" type="submit">
+                <i class="fas fa-times-circle"></i> End Live Class
+            </button>
+        </form>
+    <% } else { %>
+        <div style="margin-bottom: 24px;">
+            <p>No live class started. Click the button below to start a new class with integrated video, screen sharing, and whiteboard.</p>
+        </div>
+        <form method="POST" action="/dashboard/lecturer/live-class" style="display:inline;">
+            <button class="btn btn--primary" type="submit">
+                <i class="fas fa-video"></i> Start Live Class
+            </button>
+        </form>
+    <% } %>
+
+    <% if (classEnded && lastAttendance && lastAttendance.length) { %>
+        <div style="margin-top: 32px;">
+            <h3 style="margin-bottom: 12px;">Last Live Class Attendance</h3>
+            <form method="GET" action="/dashboard/lecturer/attendance/export" style="margin-bottom: 12px;">
+                <button class="btn btn--primary" type="submit">
+                    <i class="fas fa-print"></i> Export/Print Attendance
+                </button>
+            </form>
+            <table class="attendance-table" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Status</th>
+                        <th>Joined At</th>
+                        <th>Left At</th>
+                        <th>Duration (min)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% lastAttendance.forEach(function(row) { %>
+                        <tr>
+                            <td><%= row.student_name %></td>
+                            <td><%= row.status %></td>
+                            <td><%= row.joined_at %></td>
+                            <td><%= row.left_at || '-' %></td>
+                            <td><%= row.duration_minutes || '-' %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% } %>
+</section>
+
+                <!-- Whiteboard Section -->
+                <section id="lecturer-whiteboard" class="content-section">
+                    <h2>Interactive Whiteboard</h2>
+                    <p>
+                        Use the whiteboard below for explanations, diagrams, and live teaching.<br>
+                        <b>Tip:</b> To share with students, <b>share your screen</b> during a live class, or use Excalidraw’s collaboration features.
+                    </p>
+                    <div style="border:2px solid var(--color-primary); border-radius:12px; overflow:hidden; margin-top:16px;">
+                        <iframe
+                            src="https://excalidraw.com/"
+                            allow="fullscreen"
+                            style="width:100%; min-height:600px; border:0;"
+                            title="Whiteboard"
+                        ></iframe>
+                    </div>
+                    <p style="margin-top:12px;">
+                        <i class="fas fa-users"></i>
+                        <b>Real-time collaboration:</b> Click "Live Collaboration" in Excalidraw to invite students, or export your board as an image.
+                    </p>
+                </section>
+<!-- Attendance Section -->
+<section id="lecturer-attendance" class="content-section">
+    <h2>Attendance</h2>
+    <table class="attendance-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Course</th>
+                <th>Present</th>
+                <th>Absent</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (attendanceRecords && attendanceRecords.length) { %>
+                <% attendanceRecords.forEach(function(record){ %>
+                    <tr>
+                        <td><%= record.date %></td>
+                        <td><%= record.course %></td>
+                        <td><%= record.present %></td>
+                        <td><%= record.absent %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #888;">No attendance records found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 16px;">
+        <% if (attendancePage > 1) { %>
+            <a href="/dashboard/lecturer?attendancePage=<%= attendancePage - 1 %>#lecturer-attendance" class="btn btn--outline" style="margin-right:8px;">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        <% } %>
+        <span style="font-weight: 500; color: var(--color-primary); margin: 0 8px;">
+            Page <%= attendancePage %> of <%= attendanceTotalPages %>
+        </span>
+        <% if (attendancePage < attendanceTotalPages) { %>
+            <a href="/dashboard/lecturer?attendancePage=<%= attendancePage + 1 %>#lecturer-attendance" class="btn btn--outline">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        <% } %>
+    </div>
+</section>
+
+
+              <!-- Recordings Section -->
+<section id="lecturer-recordings" class="content-section">
+  <h2 style="color:#21808d; font-weight:700; margin-bottom:20px;">Recordings</h2>
+  
+  <div class="course-select-bar">
+    <label for="share-course-id" class="course-select-label">
+      <i class="fas fa-book" style="margin-right:6px;"></i>
+      Select Course:
+    </label>
+    <select id="share-course-id" class="course-select">
+      <% courses.forEach(function(course){ %>
+        <option value="<%= course.id %>"><%= course.title %></option>
+      <% }) %>
+    </select>
+  </div>
+  
+  <div>
+    <button id="start-recording" class="btn btn--primary"><i class="fas fa-circle"></i> Start Recording</button>
+    <button id="stop-recording" class="btn btn--error" disabled><i class="fas fa-stop"></i> Stop Recording</button>
+  </div>
+  
+  <div id="recordings-list" style="margin-top:32px;">
+    <h4 style="color:#21808d; margin-bottom:10px;">Your Recordings (This Session)</h4>
+    <ul id="recordings-ul" style="list-style:none; padding-left:0;"></ul>
+    <h4 style="color:#21808d; margin-top:32px; margin-bottom:10px;">Uploaded Recordings</h4>
+    <ul id="uploaded-recordings-ul" style="list-style:none; padding-left:0;"></ul>
+  </div>
+  
+  <p style="margin-top:20px; color:#888; font-size:1em;">
+    <b>Note:</b> Session recordings are lost on refresh. Uploaded recordings remain always.
+  </p>
+</section>
+
+<style>
+  .recording-item {
+    background: #f7f9fa;
+    border-radius: 8px;
+    padding: 18px 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(33,128,141,0.07);
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .recording-item video {
+    width: 420px;
+    max-width: 98vw;
+    height: 240px;
+    border-radius: 8px;
+    background: #000;
+    display: block;
+  }
+  .recording-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .recording-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 4px;
+  }
+  .recording-actions button, .recording-actions a {
+    margin-right: 10px;
+    margin-bottom: 6px;
+  }
+  @media (max-width: 600px) {
+    .recording-item { flex-direction: column; align-items: stretch; }
+    .recording-item video { width: 100%; height: auto; }
+  }
+</style>
+
+<script>
+let mediaRecorder, recordedChunks = [];
+let recordings = [];
+
+// Fetch uploaded recordings on page load
+async function fetchUploadedRecordings() {
+  const res = await fetch('/dashboard/lecturer/recordings');
+  const uploaded = await res.json();
+  const ul = document.getElementById('uploaded-recordings-ul');
+  ul.innerHTML = '';
+  uploaded.forEach(rec => {
+    const li = document.createElement('li');
+    li.className = 'recording-item';
+
+    // Video preview
+    const video = document.createElement('video');
+    video.controls = true;
+    video.src = rec.file_url;
+    video.preload = 'metadata';
+    video.setAttribute('preload', 'metadata');
+    video.style.objectFit = 'cover';
+
+    // Info and actions
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'recording-info';
+
+    const title = document.createElement('div');
+    title.className = 'recording-title';
+    title.textContent = rec.title || 'Untitled Recording';
+
+    const actions = document.createElement('div');
+    actions.className = 'recording-actions';
+
+    // Download link
+    const download = document.createElement('a');
+    download.href = rec.file_url;
+    download.download = (rec.title || 'recording') + '.webm';
+    download.textContent = 'Download';
+    download.className = 'btn btn--sm btn--outline';
+
+    // Remove button
+    const remove = document.createElement('button');
+    remove.textContent = 'Remove';
+    remove.className = 'btn btn--sm btn--error';
+    remove.onclick = async () => {
+      if (confirm('Are you sure you want to remove this recording?')) {
+        await fetch('/dashboard/lecturer/recordings/delete/' + rec.id, { method: 'DELETE' });
+        fetchUploadedRecordings();
+      }
+    };
+
+    // Share status
+    const shared = document.createElement('span');
+    shared.textContent = rec.shared_with_students ? 'Shared with Students' : 'Not Shared';
+    shared.style.color = rec.shared_with_students ? 'green' : 'orange';
+    shared.style.marginLeft = '10px';
+
+    // Share button (if not shared yet)
+    if (!rec.shared_with_students) {
+      const share = document.createElement('button');
+      share.textContent = 'Share with Students';
+      share.className = 'btn btn--sm btn--primary';
+      share.style.marginLeft = '10px';
+      share.onclick = async () => {
+        await fetch('/dashboard/lecturer/recordings/share/' + rec.id, { method: 'POST' });
+        fetchUploadedRecordings();
+      };
+      actions.appendChild(share);
+    }
+
+    actions.appendChild(download);
+    actions.appendChild(remove);
+    actions.appendChild(shared);
+
+    infoDiv.appendChild(title);
+    infoDiv.appendChild(actions);
+
+    li.appendChild(video);
+    li.appendChild(infoDiv);
+    ul.appendChild(li);
+  });
+}
+
+// Session recordings (not uploaded)
+function updateRecordingsList() {
+  const ul = document.getElementById('recordings-ul');
+  ul.innerHTML = '';
+  recordings.forEach((rec, idx) => {
+    const li = document.createElement('li');
+    li.className = 'recording-item';
+
+    // Video preview
+    const video = document.createElement('video');
+    video.controls = true;
+    video.src = rec.url;
+    video.setAttribute('preload', 'metadata');
+    video.style.objectFit = 'cover';
+
+    // Info and actions
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'recording-info';
+
+    const title = document.createElement('div');
+    title.className = 'recording-title';
+    title.textContent = 'New Recording ' + (idx + 1);
+
+    const actions = document.createElement('div');
+    actions.className = 'recording-actions';
+
+    // Download link
+    const download = document.createElement('a');
+    download.href = rec.url;
+    download.download = 'class-recording-' + (idx+1) + '.webm';
+    download.textContent = 'Download';
+    download.className = 'btn btn--sm btn--outline';
+
+    // Upload button
+    const upload = document.createElement('button');
+    upload.textContent = 'Upload';
+    upload.className = 'btn btn--sm btn--primary';
+    upload.onclick = () => {
+      const blob = rec.blob;
+      const formData = new FormData();
+      const selectedCourseId = document.getElementById('share-course-id').value;
+      const title = prompt('Enter a title for this recording:', 'Class Recording');
+      formData.append('recording', blob, 'class-recording.webm');
+      formData.append('course_id', selectedCourseId);
+      if (title) formData.append('title', title);
+
+      fetch('/dashboard/lecturer/recordings/upload', {
+        method: 'POST',
+        body: formData
+      }).then(res => {
+        if (res.ok) {
+          alert('Recording uploaded!');
+          fetchUploadedRecordings();
+        } else {
+          alert('Failed to upload recording.');
+        }
+      });
+    };
+
+    // Remove button
+    const remove = document.createElement('button');
+    remove.textContent = 'Remove';
+    remove.className = 'btn btn--sm btn--error';
+    remove.onclick = () => {
+      recordings.splice(idx, 1);
+      updateRecordingsList();
+    };
+
+    actions.appendChild(download);
+    actions.appendChild(upload);
+    actions.appendChild(remove);
+
+    infoDiv.appendChild(title);
+    infoDiv.appendChild(actions);
+
+    li.appendChild(video);
+    li.appendChild(infoDiv);
+    ul.appendChild(li);
+  });
+}
+
+document.getElementById('start-recording').onclick = async function() {
+  const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+  let micStream;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    alert('Could not access microphone. Only system audio will be recorded.');
+  }
+
+  let tracks = [...screenStream.getVideoTracks()];
+  if (micStream) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const dest = ctx.createMediaStreamDestination();
+    if (screenStream.getAudioTracks().length) {
+      const sysSource = ctx.createMediaStreamSource(screenStream);
+      sysSource.connect(dest);
+    }
+    const micSource = ctx.createMediaStreamSource(micStream);
+    micSource.connect(dest);
+    dest.stream.getAudioTracks().forEach(track => tracks.push(track));
+  } else if (screenStream.getAudioTracks().length) {
+    tracks = tracks.concat(screenStream.getAudioTracks());
+  }
+  const mixedStream = new MediaStream(tracks);
+
+  mediaRecorder = new MediaRecorder(mixedStream);
+  recordedChunks = [];
+
+  mediaRecorder.ondataavailable = function(e) {
+    if (e.data.size > 0) recordedChunks.push(e.data);
+  };
+  mediaRecorder.onstop = function() {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    recordings.push({ url, blob });
+    updateRecordingsList();
+  };
+
+  mediaRecorder.start();
+  document.getElementById('start-recording').disabled = true;
+  document.getElementById('stop-recording').disabled = false;
+};
+
+document.getElementById('stop-recording').onclick = function() {
+  mediaRecorder.stop();
+  document.getElementById('start-recording').disabled = false;
+  document.getElementById('stop-recording').disabled = true;
+};
+
+// On page load, fetch uploaded recordings
+document.addEventListener('DOMContentLoaded', function() {
+  fetchUploadedRecordings();
+});
+</script>
+
+                <!-- Profile Section -->
+                <section id="lecturer-profile" class="content-section">
+                    <h2>Profile</h2>
+                    <form method="POST" action="/dashboard/lecturer/profile">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" value="<%= profile.name %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="<%= profile.email %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <input type="text" class="form-control" name="department" value="<%= profile.department %>" required>
+                        </div>
+                        <button type="submit" class="btn btn--primary">Update Profile</button>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar navigation switching
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', e => {
+                e.preventDefault();
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+                const section = item.getAttribute('data-section');
+                document.getElementById(section).classList.add('active');
+                document.getElementById('page-title').textContent = item.textContent.trim();
+            });
+        });
+        // Chart.js example initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('attendanceChart');
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                        datasets: [{
+                            label: 'Attendance (%)',
+                            data: [88, 90, 85, 87, 89],
+                            borderColor: 'var(--color-primary)',
+                            backgroundColor: 'rgba(33, 128, 141, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+        });
+document.addEventListener('DOMContentLoaded', () => {
+  const items = document.querySelectorAll('#recent-activity-list .activity-item');
+  const btn = document.getElementById('show-more-activity');
+  let start = 0;
+  const pageSize = 4;
+  if (btn) {
+    btn.addEventListener('click', () => {
+      start += pageSize;
+      items.forEach((item, idx) => {
+        item.style.display = (idx >= start && idx < start + pageSize) ? '' : 'none';
+      });
+      if (start + pageSize >= items.length) btn.style.display = 'none';
+    });
+  }
+});
+
+    </script>
+</body>
+</html>

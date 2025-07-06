@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - E-Learning Platform</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { margin: 0; background: #000; color: white; }
+        .live-container { display: flex; height: 100vh; }
+        .video-section { flex: 3; position: relative; }
+        .sidebar-chat { flex: 1; background: #1a1a1a; border-left: 1px solid #333; }
+        .meeting-frame { width: 100%; height: 100%; border: none; }
+        .class-header { background: #2563eb; padding: 1rem; color: white; }
+        .class-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 1rem; }
+        .control-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px; border-radius: 50%; cursor: pointer; }
+        .control-btn:hover { background: rgba(255,255,255,0.3); }
+        .chat-section { padding: 1rem; height: calc(100vh - 60px); overflow-y: auto; }
+        .attendance-panel { padding: 1rem; border-top: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <div class="live-container">
+        <div class="video-section">
+            <div class="class-header">
+                <h3><%= classData.title %></h3>
+                <p><%= classData.course_title %> • Live Now</p>
+            </div>
+            
+            <iframe src="<%= classData.meeting_link %>" class="meeting-frame" allow="camera; microphone; display-capture"></iframe>
+            
+            <div class="class-controls">
+                <% if (user.role === 'lecturer') { %>
+                    <button class="control-btn" id="endClassBtn" data-class-id="<%= classData.id %>">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                <% } %>
+                <button class="control-btn" id="fullscreenBtn">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="control-btn" id="recordBtn">
+                    <i class="fas fa-record-vinyl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="sidebar-chat">
+            <div class="chat-section">
+                <h4>Live Chat</h4>
+                <div id="chatMessages"></div>
+                <div style="position: absolute; bottom: 60px; left: 0; right: 0; padding: 1rem;">
+                    <input type="text" id="chatInput" placeholder="Type a message..." style="width: 100%; padding: 8px; border: 1px solid #333; background: #2a2a2a; color: white;">
+                </div>
+            </div>
+            
+            <% if (user.role === 'lecturer') { %>
+            <div class="attendance-panel">
+                <h5>Attendance (<span id="attendanceCount">0</span>)</h5>
+                <div id="attendanceList"></div>
+                <button class="btn btn-sm btn-primary" id="exportAttendanceBtn">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // End class functionality
+            const endClassBtn = document.getElementById('endClassBtn');
+            if (endClassBtn) {
+                endClassBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to end this class?')) {
+                        fetch(`/classes/${this.dataset.classId}/end`, { method: 'POST' })
+                            .then(response => response.json())
+                            .then(result => {
+                                if (result.success) {
+                                    alert('Class ended successfully');
+                                    window.location.href = '/classes';
+                                }
+                            });
+                    }
+                });
+            }
+
+            // Fullscreen functionality
+            document.getElementById('fullscreenBtn').addEventListener('click', function() {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen();
+                }
+            });
+
+            // Export attendance
+            const exportBtn = document.getElementById('exportAttendanceBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function() {
+                    fetch(`/attendance/class/<%= classData.id %>/export`)
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                const link = document.createElement('a');
+                                link.href = result.downloadUrl;
+                                link.download = result.filename;
+                                link.click();
+                            }
+                        });
+                });
+            }
+
+            // Simple chat functionality
+            const chatInput = document.getElementById('chatInput');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.value.trim()) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.innerHTML = `
+                        <strong><%= user.first_name %>:</strong> ${this.value}
+                        <small style="color: #999;">${new Date().toLocaleTimeString()}</small>
+                    `;
+                    messageDiv.style.marginBottom = '10px';
+                    chatMessages.appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    this.value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <i class="fas fa-graduation-cap"></i>
+            <span class="brand-text">E-Learning</span>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <% if (user.profile_image) { %>
+                    <img src="<%= user.profile_image %>" alt="Profile" class="avatar-img">
+                <% } else { %>
+                    <div class="avatar-placeholder">
+                        <%= user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U' %>
+                    </div>
+                <% } %>
+            </div>
+            <div class="user-info">
+                <div class="user-name"><%= user.first_name %> <%= user.last_name %></div>
+                <div class="user-role">
+                    <span class="badge badge-<%= user.role === 'lecturer' ? 'primary' : 'success' %>">
+                        <%= user.role %>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <!-- Common Navigation Items -->
+        <div class="nav-section">
+            <div class="nav-item">
+                <a href="/dashboard" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'dashboard' ? 'active' : '' %>">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+        </div>
+        
+        <% if (user.role === 'lecturer') { %>
+            <!-- Lecturer Navigation -->
+            <div class="nav-section">
+                <div class="nav-section-title">Teaching</div>
+                
+                <div class="nav-item">
+                    <a href="/courses" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'courses' ? 'active' : '' %>">
+                        <i class="fas fa-book nav-icon"></i>
+                        <span class="nav-text">My Courses</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/courses/create" class="nav-link">
+                        <i class="fas fa-plus nav-icon"></i>
+                        <span class="nav-text">Create Course</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/classes" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'classes' ? 'active' : '' %>">
+                        <i class="fas fa-video nav-icon"></i>
+                        <span class="nav-text">Live Classes</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/classes/create" class="nav-link">
+                        <i class="fas fa-calendar-plus nav-icon"></i>
+                        <span class="nav-text">Schedule Class</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/attendance" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'attendance' ? 'active' : '' %>">
+                        <i class="fas fa-users nav-icon"></i>
+                        <span class="nav-text">Attendance</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/materials" class="nav-link">
+                        <i class="fas fa-file-alt nav-icon"></i>
+                        <span class="nav-text">Course Materials</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/classes/recordings" class="nav-link">
+                        <i class="fas fa-play-circle nav-icon"></i>
+                        <span class="nav-text">Recordings</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Analytics</div>
+                
+                <div class="nav-item">
+                    <a href="/reports" class="nav-link">
+                        <i class="fas fa-chart-bar nav-icon"></i>
+                        <span class="nav-text">Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/analytics" class="nav-link">
+                        <i class="fas fa-analytics nav-icon"></i>
+                        <span class="nav-text">Analytics</span>
+                    </a>
+                </div>
+            </div>
+            
+        <% } else if (user.role === 'student') { %>
+            <!-- Student Navigation -->
+            <div class="nav-section">
+                <div class="nav-section-title">Learning</div>
+                
+                <div class="nav-item">
+                    <a href="/student/courses" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'courses' ? 'active' : '' %>">
+                        <i class="fas fa-book-open nav-icon"></i>
+                        <span class="nav-text">My Courses</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/courses/browse" class="nav-link">
+                        <i class="fas fa-search nav-icon"></i>
+                        <span class="nav-text">Browse Courses</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/classes" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'classes' ? 'active' : '' %>">
+                        <i class="fas fa-video nav-icon"></i>
+                        <span class="nav-text">Live Classes</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/schedule" class="nav-link">
+                        <i class="fas fa-calendar nav-icon"></i>
+                        <span class="nav-text">Class Schedule</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/assignments" class="nav-link">
+                        <i class="fas fa-tasks nav-icon"></i>
+                        <span class="nav-text">Assignments</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/grades" class="nav-link">
+                        <i class="fas fa-chart-line nav-icon"></i>
+                        <span class="nav-text">Grades</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/materials" class="nav-link">
+                        <i class="fas fa-download nav-icon"></i>
+                        <span class="nav-text">Course Materials</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Progress</div>
+                
+                <div class="nav-item">
+                    <a href="/student/progress" class="nav-link">
+                        <i class="fas fa-chart-pie nav-icon"></i>
+                        <span class="nav-text">My Progress</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="/student/certificates" class="nav-link">
+                        <i class="fas fa-certificate nav-icon"></i>
+                        <span class="nav-text">Certificates</span>
+                    </a>
+                </div>
+            </div>
+        <% } %>
+        
+        <!-- Common Bottom Navigation -->
+        <div class="nav-section">
+            <div class="nav-section-title">Account</div>
+            
+            <div class="nav-item">
+                <a href="/profile" class="nav-link <%= typeof activeNav !== 'undefined' && activeNav === 'profile' ? 'active' : '' %>">
+                    <i class="fas fa-user nav-icon"></i>
+                    <span class="nav-text">Profile</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/settings" class="nav-link">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/help" class="nav-link">
+                    <i class="fas fa-question-circle nav-icon"></i>
+                    <span class="nav-text">Help & Support</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="nav-item">
+            <a href="/auth/logout" class="nav-link logout-link">
+                <i class="fas fa-sign-out-alt nav-icon"></i>
+                <span class="nav-text">Logout</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-version">
+            <small class="text-muted">v1.0.0</small>
+        </div>
+    </div>
+    
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+</div>
+
+<!-- Mobile sidebar toggle button -->
+<button class="sidebar-toggle d-md-none" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+    <i class="fas fa-bars"></i>
+</button>
+<% if (user && user.id) { %>
+    <!-- Full sidebar for authenticated users -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span class="brand-text">E-Learning</span>
+            </div>
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <% if (user.profile_image) { %>
+                        <img src="<%= user.profile_image %>" alt="Profile" class="avatar-img">
+                    <% } else { %>
+                        <div class="avatar-placeholder">
+                            <%= user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U' %>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="user-info">
+                    <div class="user-name"><%= user.first_name %> <%= user.last_name %></div>
+                    <div class="user-role">
+                        <span class="badge badge-<%= user.role === 'lecturer' ? 'primary' : 'success' %>">
+                            <%= user.role %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <!-- Your existing navigation items -->
+            <div class="nav-section">
+                <div class="nav-item">
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </div>
+            </div>
+            <!-- Add other nav items based on user role -->
+        </nav>
+    </div>
+<% } else { %>
+    <!-- Minimal sidebar for non-authenticated contexts -->
+    <div class="sidebar minimal" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span class="brand-text">E-Learning</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-item">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-home nav-icon"></i>
+                        <span class="nav-text">Home</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/auth/login" class="nav-link">
+                        <i class="fas fa-sign-in-alt nav-icon"></i>
+                        <span class="nav-text">Login</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/auth/register" class="nav-link">
+                        <i class="fas fa-user-plus nav-icon"></i>
+                        <span class="nav-text">Register</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+<% } %>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const body = document.body;
+    
+    sidebar.classList.toggle('show');
+    body.classList.toggle('sidebar-open');
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.querySelector('.sidebar-toggle');
+    
+    if (window.innerWidth < 768 && 
+        !sidebar.contains(e.target) && 
+        !toggleBtn.contains(e.target) &&
+        sidebar.classList.contains('show')) {
+        toggleSidebar();
+    }
+});
+
+// Handle resize events
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('sidebar');
+    const body = document.body;
+    
+    if (window.innerWidth >= 768) {
+        sidebar.classList.remove('show');
+        body.classList.remove('sidebar-open');
+    }
+});
+</script>

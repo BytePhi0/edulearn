@@ -1,0 +1,449 @@
+<%- include('../layouts/header', { title: course.title }) %>
+
+<div class="dashboard-container">
+    <%- include('../layouts/sidebar', { user, activeNav: 'courses' }) %>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title"><%= course.title %></h1>
+                    <p class="page-subtitle">
+                        <span class="course-code"><%= course.course_code %></span> • 
+                        <%= course.credits %> Credits • 
+                        <%= course.semester %> <%= course.year %>
+                    </p>
+                </div>
+                <div class="header-actions">
+                    <% if (user.role === 'lecturer') { %>
+                        <a href="/courses/<%= course.id %>/edit" class="btn btn-secondary">
+                            <i class="fas fa-edit"></i>
+                            Edit Course
+                        </a>
+                        <a href="/classes/create?course_id=<%= course.id %>" class="btn btn-primary">
+                            <i class="fas fa-video"></i>
+                            Create Live Class
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-8">
+                <!-- Course Overview -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Course Overview</h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (course.thumbnail) { %>
+                            <div class="course-thumbnail mb-3">
+                                <img src="<%= course.thumbnail %>" alt="<%= course.title %>" class="img-fluid rounded">
+                            </div>
+                        <% } %>
+                        
+                        <div class="course-description">
+                            <% if (course.description) { %>
+                                <p><%= course.description %></p>
+                            <% } else { %>
+                                <p class="text-muted">No description provided for this course.</p>
+                            <% } %>
+                        </div>
+                        
+                        <div class="course-meta">
+                            <div class="row">
+                                <div class="col-3">
+                                    <div class="meta-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <div>
+                                            <small class="text-muted">Semester</small>
+                                            <div><%= course.semester %> <%= course.year %></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="meta-item">
+                                        <i class="fas fa-star"></i>
+                                        <div>
+                                            <small class="text-muted">Credits</small>
+                                            <div><%= course.credits %></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="meta-item">
+                                        <i class="fas fa-users"></i>
+                                        <div>
+                                            <small class="text-muted">Students</small>
+                                            <div id="studentCount">Loading...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="meta-item">
+                                        <i class="fas fa-chart-line"></i>
+                                        <div>
+                                            <small class="text-muted">Status</small>
+                                            <div>
+                                                <span class="badge badge-<%= course.status === 'active' ? 'success' : 'secondary' %>">
+                                                    <%= course.status %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Materials -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3>Course Materials</h3>
+                            <% if (user.role === 'lecturer') { %>
+                                <button class="btn btn-sm btn-primary" data-modal-target="uploadMaterialModal">
+                                    <i class="fas fa-upload"></i>
+                                    Upload Material
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="materialsContainer">
+                            <% if (materials && materials.length > 0) { %>
+                                <div class="materials-grid">
+                                    <% materials.forEach(material => { %>
+                                        <div class="material-item">
+                                            <div class="material-icon">
+                                                <% if (material.file_type.includes('pdf')) { %>
+                                                    <i class="fas fa-file-pdf text-danger"></i>
+                                                <% } else if (material.file_type.includes('word')) { %>
+                                                    <i class="fas fa-file-word text-primary"></i>
+                                                <% } else if (material.file_type.includes('powerpoint')) { %>
+                                                    <i class="fas fa-file-powerpoint text-warning"></i>
+                                                <% } else if (material.file_type.includes('image')) { %>
+                                                    <i class="fas fa-file-image text-success"></i>
+                                                <% } else { %>
+                                                    <i class="fas fa-file text-secondary"></i>
+                                                <% } %>
+                                            </div>
+                                            <div class="material-info">
+                                                <h6><%= material.title %></h6>
+                                                <small class="text-muted">
+                                                    <%= new Date(material.upload_date).toLocaleDateString() %>
+                                                </small>
+                                            </div>
+                                            <div class="material-actions">
+                                                <a href="<%= material.file_path %>" class="btn btn-sm btn-outline" download>
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                <% if (user.role === 'lecturer') { %>
+                                                    <button class="btn btn-sm btn-danger delete-material" data-material-id="<%= material.id %>">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-materials">
+                                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                    <h5>No Materials Available</h5>
+                                    <p class="text-muted">
+                                        <% if (user.role === 'lecturer') { %>
+                                            Upload course materials to help your students learn.
+                                        <% } else { %>
+                                            Your instructor hasn't uploaded any materials yet.
+                                        <% } %>
+                                    </p>
+                                    <% if (user.role === 'lecturer') { %>
+                                        <button class="btn btn-primary" data-modal-target="uploadMaterialModal">
+                                            <i class="fas fa-upload"></i>
+                                            Upload First Material
+                                        </button>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Classes -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3>Live Classes</h3>
+                            <% if (user.role === 'lecturer') { %>
+                                <a href="/classes/create?course_id=<%= course.id %>" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    Schedule Class
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="classesContainer">
+                            <!-- Classes will be loaded via JavaScript -->
+                            <div class="text-center p-3">
+                                <div class="spinner"></div>
+                                <p>Loading classes...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-4">
+                <!-- Course Stats -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Course Statistics</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-list">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users text-primary"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-label">Enrolled Students</div>
+                                    <div class="stat-value" id="enrolledCount">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-video text-success"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-label">Total Classes</div>
+                                    <div class="stat-value" id="totalClasses">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-file-alt text-warning"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-label">Course Materials</div>
+                                    <div class="stat-value"><%= materials ? materials.length : 0 %></div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-percentage text-info"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="stat-label">Avg Attendance</div>
+                                    <div class="stat-value" id="avgAttendance">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Quick Actions</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions">
+                            <% if (user.role === 'lecturer') { %>
+                                <a href="/classes/create?course_id=<%= course.id %>" class="quick-action-item">
+                                    <i class="fas fa-video"></i>
+                                    <span>Schedule Live Class</span>
+                                </a>
+                                
+                                <button class="quick-action-item" data-modal-target="uploadMaterialModal">
+                                    <i class="fas fa-upload"></i>
+                                    <span>Upload Material</span>
+                                </button>
+                                
+                                <a href="/attendance/course/<%= course.id %>" class="quick-action-item">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>View Attendance</span>
+                                </a>
+                                
+                                <a href="/courses/<%= course.id %>/students" class="quick-action-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Manage Students</span>
+                                </a>
+                            <% } else { %>
+                                <a href="/student/courses/<%= course.id %>/materials" class="quick-action-item">
+                                    <i class="fas fa-download"></i>
+                                    <span>Download Materials</span>
+                                </a>
+                                
+                                <a href="/student/courses/<%= course.id %>/progress" class="quick-action-item">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>View Progress</span>
+                                </a>
+                                
+                                <a href="/student/courses/<%= course.id %>/grades" class="quick-action-item">
+                                    <i class="fas fa-star"></i>
+                                    <span>View Grades</span>
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Recent Activity</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentActivity">
+                            <div class="text-center p-3">
+                                <div class="spinner"></div>
+                                <p>Loading activity...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Material Modal -->
+<% if (user.role === 'lecturer') { %>
+    <div class="modal" id="uploadMaterialModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h4 class="modal-title">Upload Course Material</h4>
+                <button class="modal-close" type="button">&times;</button>
+            </div>
+            <form id="uploadMaterialForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="materialTitle" class="form-label">Material Title *</label>
+                        <input type="text" id="materialTitle" name="title" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="materialDescription" class="form-label">Description</label>
+                        <textarea id="materialDescription" name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="materialFile" class="form-label">Select File *</label>
+                        <input type="file" id="materialFile" name="file" class="form-control" required>
+                        <div class="form-text">
+                            Supported formats: PDF, Word, PowerPoint, Images, Videos (Max: 10MB)
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i>
+                        Upload Material
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+<% } %>
+
+<script>
+// Expose user role and course id to client-side JS
+window.currentUserRole = '<%= user.role %>';
+window.currentCourseId = '<%= course.id %>';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadCourseStats();
+    loadLiveClasses();
+    loadRecentActivity();
+    
+    if (window.currentUserRole === 'lecturer') {
+        setupMaterialUpload();
+        setupMaterialDeletion();
+    }
+});
+
+async function loadCourseStats() {
+    try {
+        const response = await fetch('/api/courses/<%= course.id %>/stats');
+        const stats = await response.json();
+        
+        document.getElementById('studentCount').textContent = stats.enrolledStudents || 0;
+        document.getElementById('enrolledCount').textContent = stats.enrolledStudents || 0;
+        document.getElementById('totalClasses').textContent = stats.totalClasses || 0;
+        document.getElementById('avgAttendance').textContent = stats.avgAttendance ? stats.avgAttendance + '%' : '--';
+    } catch (error) {
+        console.error('Failed to load course stats:', error);
+    }
+}
+
+async function loadLiveClasses() {
+    try {
+        const response = await fetch('/api/courses/<%= course.id %>/classes');
+        const classes = await response.json();
+        
+        const container = document.getElementById('classesContainer');
+        
+        if (classes.length === 0) {
+            let emptyHtml = `
+                    ${window.currentUserRole === 'lecturer'
+                        ? 'Schedule your first live class to start teaching.'
+                        : 'No live classes have been scheduled yet.'}
+                    </p>
+                    ${window.currentUserRole === 'lecturer'
+                        ? `<a href="/classes/create?course_id=${window.currentCourseId}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Schedule First Class
+                        </a>`
+                        : ''}
+                </div>
+            `;
+                        </a>`
+                        : ''}
+                </div>
+            `;
+            container.innerHTML = emptyHtml;
+        } else {
+            const classesHTML = classes.map(cls => `
+                <div class="class-item">
+                    <div class="class-info">
+                        <h6>${cls.title}</h6>
+                        <small class="text-muted">
+                            ${new Date(cls.scheduled_date).toLocaleString()}
+                            • ${cls.duration_minutes} minutes
+                        </small>
+                    </div>
+                    <div class="class-status">
+                        <span class="badge badge-${getClassStatusBadge(cls.status)}">${cls.status}</span>
+                    </div>
+                    <div class="class-actions">
+                        ${getClassActions(cls)}
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = classesHTML;
+        }
+    } catch (error) {
+        console.error('Failed to load live classes:', error);
+        document.getElementById('classesContainer').innerHTML = '<p class="text-danger">Failed to load classes</p>';
+    }
+}
+
+function getClassStatusBadge(status) {
+    switch (status) {
+        case 'live': return 'success';
+        case 'completed': return 'secondary';
+        case 'cancelled': return 'danger';
+        default: return 'primary';
+    }
+}

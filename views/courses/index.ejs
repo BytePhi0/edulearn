@@ -1,0 +1,305 @@
+<%- include('../layouts/header', { title: title }) %>
+
+<div class="dashboard-container">
+    <%- include('../layouts/sidebar', { user, activeNav: 'courses' }) %>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">My Courses</h1>
+                    <p class="page-subtitle">Manage your courses and track student progress</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/courses/create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Create New Course
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Statistics -->
+        <div class="stats-grid mb-4">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-number"><%= courses.length %></div>
+                <div class="stat-label">Total Courses</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number">
+                    <%= courses.reduce((total, course) => total + (course.enrolled_students || 0), 0) %>
+                </div>
+                <div class="stat-label">Total Students</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-number">
+                    <%= Math.round(courses.reduce((total, course) => total + (course.enrolled_students || 0), 0) / Math.max(courses.length, 1)) %>
+                </div>
+                <div class="stat-label">Avg Students/Course</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="stat-number">
+                    <%= courses.filter(course => course.status === 'active').length %>
+                </div>
+                <div class="stat-label">Active Courses</div>
+            </div>
+        </div>
+
+        <!-- Course List -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>Course List</h3>
+                    <div class="course-filters">
+                        <select class="form-control" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <% if (courses.length > 0) { %>
+                    <div class="table-container">
+                        <table class="table" id="coursesTable">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Code</th>
+                                    <th>Students</th>
+                                    <th>Credits</th>
+                                    <th>Semester</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% courses.forEach(course => { %>
+                                    <tr data-status="<%= course.status %>">
+                                        <td>
+                                            <div class="course-info">
+                                                <h6 class="course-title"><%= course.title %></h6>
+                                                <p class="course-description">
+                                                    <%= course.description ? course.description.substring(0, 100) + '...' : 'No description' %>
+                                                </p>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="course-code"><%= course.course_code %></span>
+                                        </td>
+                                        <td>
+                                            <div class="student-count">
+                                                <i class="fas fa-users"></i>
+                                                <%= course.enrolled_students || 0 %>
+                                            </div>
+                                        </td>
+                                        <td><%= course.credits %></td>
+                                        <td><%= course.semester %> <%= course.year %></td>
+                                        <td>
+                                            <span class="badge badge-<%= course.status === 'active' ? 'success' : course.status === 'inactive' ? 'warning' : 'secondary' %>">
+                                                <%= course.status %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="/courses/<%= course.id %>" class="btn btn-sm btn-primary" title="View Course">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="/courses/<%= course.id %>/edit" class="btn btn-sm btn-secondary" title="Edit Course">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="/courses/<%= course.id %>/materials" class="btn btn-sm btn-info" title="Course Materials">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </a>
+                                                <button class="btn btn-sm btn-danger delete-course" 
+                                                        data-course-id="<%= course.id %>" 
+                                                        title="Delete Course">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="empty-state">
+                        <div class="text-center p-5">
+                            <i class="fas fa-book fa-4x text-secondary mb-3"></i>
+                            <h4>No Courses Created Yet</h4>
+                            <p class="text-secondary mb-4">
+                                Start by creating your first course to begin teaching and engaging with students.
+                            </p>
+                            <a href="/courses/create" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus"></i>
+                                Create Your First Course
+                            </a>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status filter
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            const filterValue = this.value;
+            const rows = document.querySelectorAll('#coursesTable tbody tr');
+            
+            rows.forEach(row => {
+                const status = row.dataset.status;
+                if (!filterValue || status === filterValue) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Delete course functionality
+    document.querySelectorAll('.delete-course').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const courseId = this.dataset.courseId;
+            
+            if (confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/courses/${courseId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        // Remove row from table
+                        this.closest('tr').remove();
+                        showSuccess('Course deleted successfully');
+                        
+                        // Check if table is empty
+                        const remainingRows = document.querySelectorAll('#coursesTable tbody tr');
+                        if (remainingRows.length === 0) {
+                            location.reload();
+                        }
+                    } else {
+                        const result = await response.json();
+                        showError(result.message || 'Failed to delete course');
+                    }
+                } catch (error) {
+                    showError('An error occurred while deleting the course');
+                }
+            }
+        });
+    });
+});
+
+function showSuccess(message) {
+    showNotification('Success', message, 'success');
+}
+
+function showError(message) {
+    showNotification('Error', message, 'error');
+}
+
+function showNotification(title, message, type) {
+    // Implementation depends on your notification system
+    alert(`${title}: ${message}`);
+}
+</script>
+
+<style>
+.course-info .course-title {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.course-info .course-description {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.course-code {
+    font-family: monospace;
+    background: #f8fafc;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+.student-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.action-buttons .btn {
+    padding: 0.375rem 0.5rem;
+}
+
+.empty-state {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.course-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.course-filters select {
+    min-width: 150px;
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .course-filters {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+}
+</style>
+
+<%- include('../layouts/footer') %>

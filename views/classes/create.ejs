@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - E-Learning Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <%- include('../layouts/sidebar', { user }) %>
+        
+        <div class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Create Live Class</h1>
+                <p class="page-subtitle">Schedule a new live session for your students</p>
+            </div>
+
+            <div class="row">
+                <div class="col-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Class Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <form action="/classes/create" method="POST" id="createClassForm">
+                                <div class="form-group">
+                                    <label for="course_id" class="form-label">Select Course *</label>
+                                    <select id="course_id" name="course_id" class="form-control" required>
+                                        <option value="">Choose a course...</option>
+                                        <% courses.forEach(course => { %>
+                                            <option value="<%= course.id %>">
+                                                <%= course.course_code %> - <%= course.title %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="title" class="form-label">Class Title *</label>
+                                    <input type="text" id="title" name="title" class="form-control" 
+                                           placeholder="e.g., Introduction to Programming" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea id="description" name="description" class="form-control" rows="3"
+                                              placeholder="Brief description of what will be covered..."></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="scheduled_date" class="form-label">Date & Time *</label>
+                                            <input type="datetime-local" id="scheduled_date" name="scheduled_date" 
+                                                   class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                                            <select id="duration_minutes" name="duration_minutes" class="form-control">
+                                                <option value="30">30 minutes</option>
+                                                <option value="45">45 minutes</option>
+                                                <option value="60" selected>1 hour</option>
+                                                <option value="90">1.5 hours</option>
+                                                <option value="120">2 hours</option>
+                                                <option value="180">3 hours</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="meeting_type" class="form-label">Meeting Platform</label>
+                                    <select id="meeting_type" name="meeting_type" class="form-control">
+                                        <option value="google_meet">Google Meet</option>
+                                        <option value="bigbluebutton">BigBlueButton</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="d-flex gap-3">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-calendar-plus"></i>
+                                            Schedule Class
+                                        </button>
+                                        <a href="/classes" class="btn btn-secondary">
+                                            <i class="fas fa-times"></i>
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Live Class Features</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Included features:</strong>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-video text-primary"></i> HD Video conferencing</li>
+                                <li><i class="fas fa-desktop text-primary"></i> Screen sharing</li>
+                                <li><i class="fas fa-chalkboard text-primary"></i> Virtual whiteboard</li>
+                                <li><i class="fas fa-users text-primary"></i> Real-time attendance</li>
+                                <li><i class="fas fa-cloud text-primary"></i> Automatic recording</li>
+                                <li><i class="fas fa-download text-primary"></i> Attendance reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Set minimum date to current date/time
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            document.getElementById('scheduled_date').min = minDateTime;
+        });
+
+        document.getElementById('createClassForm').addEventListener('submit', function(e) {
+            const courseId = document.getElementById('course_id').value;
+            const title = document.getElementById('title').value;
+            const scheduledDate = document.getElementById('scheduled_date').value;
+            
+            if (!courseId || !title.trim() || !scheduledDate) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return false;
+            }
+
+            // Check if date is in the future
+            const selected = new Date(scheduledDate);
+            const now = new Date();
+            
+            if (selected <= now) {
+                e.preventDefault();
+                alert('Please select a future date and time');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

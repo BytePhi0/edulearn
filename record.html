@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Screen & Voice Recorder</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins',  sans-serif;
+      background: #f7f9fa;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(33,128,141,0.08);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    h1 {
+      color: #21808d;
+      margin-bottom: 24px;
+      font-size: 2rem;
+      font-weight: 600;
+    }
+    button {
+      background: #21808d;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 8px 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .controls {
+      margin-bottom: 18px;
+    }
+    .recordings {
+      margin-top: 24px;
+      text-align: left;
+    }
+    .recording-item {
+      background: #f1f8fa;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .recording-item video, .recording-item audio {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    label {
+      margin-right: 10px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Screen & Voice Recorder</h1>
+    <div class="controls">
+      <label>
+        <input type="checkbox" id="recordScreen" checked>
+        Screen
+      </label>
+      <label>
+        <input type="checkbox" id="recordMic" checked>
+        Microphone
+      </label>
+      <br>
+      <button id="startBtn">Start Recording</button>
+      <button id="stopBtn" disabled>Stop Recording</button>
+    </div>
+    <div class="recordings" id="recordings"></div>
+    <p style="color:#888; font-size:0.95em; margin-top:24px;">
+      After recording, you can play back or download your video/audio to send to your supervisor.
+    </p>
+  </div>
+  <script>
+    let mediaRecorder, recordedChunks = [];
+    let screenStream, micStream, mixedStream;
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const recordingsDiv = document.getElementById('recordings');
+    const recordScreen = document.getElementById('recordScreen');
+    const recordMic = document.getElementById('recordMic');
+
+    startBtn.onclick = async function() {
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      recordedChunks = [];
+      try {
+        // Get selected streams
+        if (recordScreen.checked && recordMic.checked) {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // Mix audio tracks
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const dest = ctx.createMediaStreamDestination();
+          if (screenStream.getAudioTracks().length) {
+            ctx.createMediaStreamSource(screenStream).connect(dest);
+          }
+          ctx.createMediaStreamSource(micStream).connect(dest);
+          mixedStream = new MediaStream([
+            ...screenStream.getVideoTracks(),
+            ...dest.stream.getAudioTracks()
+          ]);
+        } else if (recordScreen.checked) {
+          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          mixedStream = screenStream;
+        } else if (recordMic.checked) {
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mixedStream = micStream;
+        } else {
+          alert('Please select at least one source (Screen or Microphone)');
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+          return;
+        }
+        mediaRecorder = new MediaRecorder(mixedStream);
+        mediaRecorder.ondataavailable = e => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = function() {
+          const blob = new Blob(recordedChunks, { type: mixedStream.getVideoTracks().length ? 'video/webm' : 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+          const item = document.createElement('div');
+          item.className = 'recording-item';
+          if (mixedStream.getVideoTracks().length) {
+            const video = document.createElement('video');
+            video.controls = true;
+            video.src = url;
+            item.appendChild(video);
+          } else {
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = url;
+            item.appendChild(audio);
+          }
+          const download = document.createElement('a');
+          download.href = url;
+          download.download = mixedStream.getVideoTracks().length ? 'recording.webm' : 'recording-audio.webm';
+          download.textContent = 'Download';
+          download.style = 'display:inline-block;margin-right:12px;font-weight:600;color:#21808d;';
+          item.appendChild(download);
+
+          const removeBtn = document.createElement('button');
+          removeBtn.textContent = 'Remove';
+          removeBtn.onclick = () => item.remove();
+          item.appendChild(removeBtn);
+
+          recordingsDiv.prepend(item);
+          // Clean up streams
+          if (screenStream) screenStream.getTracks().forEach(track => track.stop());
+          if (micStream) micStream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorder.start();
+      } catch (err) {
+        alert('Error: ' + err.message);
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    };
+
+    stopBtn.onclick = function() {
+      stopBtn.disabled = true;
+      startBtn.disabled = false;
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    };
+  </script>
+</body>
+</html>

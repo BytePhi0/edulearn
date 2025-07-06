@@ -1,0 +1,128 @@
+    <!-- Footer Scripts -->
+    <script src="/js/main.js"></script>
+    <script src="/js/meeting.js"></script>
+    
+    <% if (typeof additionalJS !== 'undefined') { %>
+        <% additionalJS.forEach(js => { %>
+            <script src="<%= js %>"></script>
+        <% }); %>
+    <% } %>
+    
+    <!-- Global JavaScript Variables -->
+    <script>
+        window.APP_CONFIG = {
+            baseUrl: '<%= typeof baseUrl !== "undefined" ? baseUrl : "" %>',
+            apiUrl: '<%= typeof apiUrl !== "undefined" ? apiUrl : "/api" %>',
+            user: <%= typeof user !== "undefined" ? JSON.stringify({
+                id: user.userId,
+                role: user.role,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email
+            }) : null %>,
+            csrfToken: "<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"
+        };
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed');
+                    });
+            });
+        }
+    </script>
+    
+    <!-- Analytics (if needed) -->
+    <% if (typeof analyticsId !== 'undefined' && analyticsId) { %>
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=<%= analyticsId %>"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '<%= analyticsId %>');
+        </script>
+    <% } %>
+    
+    <!-- Accessibility -->
+    <script>
+        // Focus management for modals and navigation
+        document.addEventListener('keydown', function(e) {
+            // Escape key closes modals
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) {
+                    const closeBtn = openModal.querySelector('.modal-close');
+                    if (closeBtn) closeBtn.click();
+                }
+            }
+            
+            // Tab key navigation improvements
+            if (e.key === 'Tab') {
+                const focusableElements = document.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                
+                if (focusableElements.length === 0) return;
+                
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        });
+        
+        // Announce page changes to screen readers
+        const announcer = document.createElement('div');
+        announcer.setAttribute('aria-live', 'polite');
+        announcer.setAttribute('aria-atomic', 'true');
+        announcer.setAttribute('class', 'sr-only');
+        document.body.appendChild(announcer);
+        
+        window.announceToScreenReader = function(message) {
+            announcer.textContent = message;
+            setTimeout(() => {
+                announcer.textContent = '';
+            }, 1000);
+        };
+    </script>
+    
+    <!-- Performance monitoring -->
+    <script>
+        // Basic performance monitoring
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                const loadTime = perfData.loadEventEnd - perfData.fetchStart;
+                
+                // Log to console in development
+                if (window.APP_CONFIG && window.APP_CONFIG.environment === 'development') {
+                    console.log('Page load time:', loadTime + 'ms');
+                }
+                
+                // Send to analytics in production (if implemented)
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'page_load_time', {
+                        event_category: 'Performance',
+                        event_label: window.location.pathname,
+                        value: Math.round(loadTime)
+                    });
+                }
+            }, 0);
+        });
+    </script>
+</body>
+</html>

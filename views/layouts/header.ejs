@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <title><%= title %> - E-Learning Platform</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <% if (typeof additionalCSS !== 'undefined') { %>
+        <% additionalCSS.forEach(css => { %>
+            <link rel="stylesheet" href="<%= css %>">
+        <% }); %>
+    <% } %>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="E-Learning Platform - Online education and virtual classrooms">
+    <meta name="keywords" content="e-learning, education, online courses, virtual classroom">
+    <meta name="author" content="E-Learning Platform">
+    
+    <!-- Open Graph tags -->
+    <meta property="og:title" content="<%= title %> - E-Learning Platform">
+    <meta property="og:description" content="Online education and virtual classrooms">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= typeof url !== 'undefined' ? url : '' %>">
+    <meta property="og:image" content="/images/og-image.png">
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title %> - E-Learning Platform">
+    <meta name="twitter:description" content="Online education and virtual classrooms">
+    <meta name="twitter:image" content="/images/twitter-card.png">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>

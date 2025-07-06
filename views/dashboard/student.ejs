@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>EduConnect - Student Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        .content-section { display: none; padding: var(--space-24); }
+        .content-section.active { display: block; }
+        .courses-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .courses-grid th, .courses-grid td {
+            border: 1px solid var(--color-border);
+            padding: var(--space-8);
+            text-align: left;
+            vertical-align: middle;
+        }
+        .courses-grid th {
+            background: var(--color-secondary);
+        }
+        .courses-grid tr:nth-child(even) {
+            background: #f8fafd;
+        }
+        .courses-grid tr:hover {
+            background: var(--color-primary-hover);
+            color: var(--color-btn-primary-text);
+            transition: background 0.2s;
+        }
+        .progress-bar {
+            background: var(--color-border);
+            border-radius: 12px;
+            height: 16px;
+            width: 100%;
+            margin: 4px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: var(--color-primary);
+            height: 100%;
+            border-radius: 12px 0 0 12px;
+            transition: width 0.4s ease;
+        }
+        .materials-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0 0 18px 0;
+        }
+        .materials-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 7px 0 7px 0;
+            border-bottom: 1px solid var(--color-border, #e6f3f6);
+            font-size: 15px;
+        }
+        .materials-list li:last-child {
+            border-bottom: none;
+        }
+        .materials-list li i {
+            margin-right: 12px;
+            color: var(--color-primary, #21808d);
+            font-size: 18px;
+        }
+        .materials-list a {
+            color: var(--color-primary, #21808d);
+            font-weight: 500;
+            text-decoration: underline;
+            transition: color 0.2s;
+            margin-right: 8px;
+            word-break: break-all;
+        }
+        .materials-list a:hover {
+            color: var(--color-primary-hover, #217b8d);
+            text-decoration: underline;
+        }
+        .tag {
+            display: inline-block;
+            background: var(--color-primary);
+            color: #fff;
+            border-radius: 8px;
+            padding: 2px 8px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .carousel {
+            position: relative;
+            width: 100%;
+            min-width: 220px;
+            margin-bottom: 18px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(33,128,141,0.07);
+            padding: 18px 16px 14px 16px;
+        }
+        .carousel-item {
+            display: none;
+            padding: 8px 0 4px 0;
+            animation: fadeIn 0.3s;
+        }
+        .carousel-item.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .material-thumb {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+        .material-thumb i {
+            color: var(--color-primary, #21808d);
+            font-size: 22px;
+        }
+        .material-title {
+            font-weight: 600;
+            color: var(--color-primary, #21808d);
+            font-size: 16px;
+        }
+        .carousel-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+        .carousel-controls .btn {
+            font-size: 16px;
+            padding: 5px 14px;
+            border-radius: 6px;
+            background: var(--color-secondary, #e6f3f6);
+            color: var(--color-primary, #21808d);
+            border: none;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+        .carousel-controls .btn:hover {
+            background: var(--color-primary, #21808d);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="student-dashboard" class="page dashboard active">
+        <div class="dashboard-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>EduConnect</span>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" data-section="student-overview"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="#" class="nav-item" data-section="student-courses"><i class="fas fa-book"></i> My Courses</a>
+                    <a href="#" class="nav-item" data-section="student-live-classes"><i class="fas fa-video"></i> Live Classes</a>
+                    <a href="#" class="nav-item" data-section="student-materials"><i class="fas fa-folder"></i> Materials</a>
+                    <a href="#" class="nav-item" data-section="student-recordings"><i class="fas fa-play-circle"></i> Recordings</a>
+                    <a href="#" class="nav-item" data-section="student-progress"><i class="fas fa-chart-line"></i> Progress</a>
+                    <a href="#" class="nav-item" data-section="student-profile"><i class="fas fa-user"></i> Profile</a>
+                </nav>
+                <div class="sidebar-footer">
+                    <form action="/auth/logout" method="get">
+                        <button class="btn btn--outline btn--full-width" type="submit">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <header class="main-header">
+                    <div class="header-left">
+                        <h1 id="student-page-title">Dashboard</h1>
+                        <p id="student-page-subtitle">Welcome back, <%= user.name %></p>
+                    </div>
+                    <div class="header-right">
+                  <button class="btn btn--primary" id="browse-courses-btn">
+    <i class="fas fa-search"></i> Browse Courses
+</button>
+
+                        <div class="user-menu">
+                            <i class="fas fa-bell"></i>
+                            <div class="user-avatar">
+                                <%= user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) %>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Dashboard Overview -->
+                <section id="student-overview" class="content-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card card">
+                            <div class="card__body">
+                                <div class="stat-icon"><i class="fas fa-book"></i></div>
+                                <div class="stat-content">
+                                    <h3><%= stats.enrolled %></h3>
+                                    <p>Enrolled Courses</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <div class="card__body">
+                                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                                <div class="stat-content">
+                                    <h3><%= stats.hours %></h3>
+                                    <p>Hours Completed</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <div class="card__body">
+                                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="stat-content">
+                                    <h3><%= stats.attendance %>%</h3>
+                                    <p>Attendance Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card card">
+                            <div class="card__body">
+                                <div class="stat-icon"><i class="fas fa-star"></i></div>
+                                <div class="stat-content">
+                                    <h3><%= stats.grade %></h3>
+                                    <p>Average Grade</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card__header"><h3>Upcoming Classes</h3></div>
+                            <div class="card__body">
+                                <% if (upcomingClasses && upcomingClasses.length) { %>
+                                    <ul>
+                                        <% upcomingClasses.forEach(function(cls) { %>
+                                            <li><%= cls.title %> - <%= cls.date %></li>
+                                        <% }); %>
+                                    </ul>
+                                <% } else { %>
+                                    <p>No upcoming classes yet.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card__header"><h3>Course Progress</h3></div>
+                            <div class="card__body">
+                                <div class="progress-list">
+                                    <% courses.forEach(function(course) { %>
+                                    <div class="progress-item">
+                                        <span><%= course.title %></span>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: <%= course.progress ? course.progress : 0 %>%"></div>
+                                        </div>
+                                        <span><%= course.progress %>%</span>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Available Courses to Enroll -->
+                <section id="student-available-courses" class="content-section">
+                    <h2>Available Courses</h2>
+                    <% if (availableCourses && availableCourses.length) { %>
+                    <table class="courses-grid">
+                        <thead>
+                            <tr><th>Title</th><th>Code</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <% availableCourses.forEach(function(course) { %>
+                                <tr>
+                                    <td><%= course.title %></td>
+                                    <td><%= course.course_code %></td>
+                                    <td>
+                                        <form method="POST" action="/dashboard/student/enroll" style="display:inline;">
+                                            <input type="hidden" name="course_id" value="<%= course.id %>">
+                                            <button class="btn btn--primary btn--sm" type="submit">
+                                                <i class="fas fa-plus"></i> Enroll
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                    <% } else { %>
+                        <p>No available courses to enroll.</p>
+                    <% } %>
+                </section>
+
+                <!-- My Courses -->
+                <section id="student-courses" class="content-section">
+                    <h2>My Courses</h2>
+                    <% if (courses && courses.length) { %>
+                    <table class="courses-grid">
+                        <thead>
+                            <tr><th>Title</th><th>Code</th><th>Progress</th><th>Materials</th></tr>
+                        </thead>
+                        <tbody>
+                            <% courses.forEach(function(course){ %>
+                                <tr>
+                                    <td><%= course.title %></td>
+                                    <td><%= course.course_code %></td>
+                                    <td>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: <%= course.progress ? course.progress : 0 %>%;"></div>
+                                        </div>
+                                        <span><%= course.progress %>%</span>
+                                    </td>
+                                    <td>
+                                        <% if (course.materials && course.materials.length) { %>
+                                            <ul class="materials-list">
+                                            <% course.materials.forEach(function(mat){ %>
+                                                <li>
+                                                    <i class="fas fa-file-alt"></i>
+                                                    <a href="<%= mat.file_url %>" target="_blank" download onclick="markMaterialRead(<%= course.id %>, <%= mat.id %>)"><%= mat.title %></a>
+                                                    <span class="tag"><%= mat.type %></span>
+                                                </li>
+                                            <% }) %>
+                                            </ul>
+                                        <% } else { %>
+                                            <span style="color:#888;">No materials yet</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                    <% } else { %>
+                        <p>No enrolled courses yet.</p>
+                    <% } %>
+                </section>
+
+                <!-- Live Classes -->
+                <section id="student-live-classes" class="content-section">
+                    <h2>Live Classes</h2>
+                    <% if (roomUrl && currentClassId) { %>
+                        <script>
+                            // Trigger attendance when student joins live class
+                            fetch('/dashboard/student/class/<%= currentClassId %>/attendance', { method: 'POST' });
+                        </script>
+                        <div class="video-meeting-container"
+                             style="border-radius:12px; overflow:hidden; border:2px solid var(--color-primary); margin-bottom: 24px;">
+                            <iframe
+                                src="<%= roomUrl %>"
+                                allow="camera; microphone; fullscreen; display-capture"
+                                style="width: 100%; height: 600px; border: 0;"
+                                title="Live Class Video Meeting"
+                            ></iframe>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <span style="color: var(--color-text); font-weight: 500;">This is your current live class. If you have connection issues, <a href="<%= roomUrl %>" target="_blank">open in a new tab</a>.</span>
+                        </div>
+                    <% } else { %>
+                        <div style="margin-bottom: 24px;">
+                            <p>No live class is currently running. Please check back later or contact your lecturer.</p>
+                        </div>
+                    <% } %>
+                </section>
+
+                <!-- Materials (all materials across courses, with carousel/preview) -->
+<section id="student-materials" class="content-section">
+    <h2>All Materials</h2>
+    <% if (courses && courses.length && courses.some(c => c.materials && c.materials.length)) { %>
+        <% courses.forEach(function(course){ %>
+            <% if (course.materials && course.materials.length) { %>
+                <h4 style="margin-bottom: 8px;"><%= course.title %> (<%= course.course_code %>)</h4>
+                <div class="carousel" data-course-id="<%= course.id %>">
+                    <% course.materials.forEach(function(mat, idx) { %>
+                        <div class="carousel-item<%= idx === 0 ? ' active' : '' %>" data-material-id="<%= mat.id %>">
+                            <div class="material-thumb">
+                                <i class="fas fa-file-alt"></i>
+                                <span class="material-title"><%= mat.title %></span>
+                                <span class="tag"><%= mat.type %></span>
+                            </div>
+                            <div class="material-actions" style="margin-top:8px;">
+                                <a href="<%= mat.file_url %>" target="_blank" class="btn btn--primary btn--sm"
+                                   onclick="markMaterialRead(<%= course.id %>, <%= mat.id %>)">
+                                    <i class="fas fa-eye"></i> Preview / Download
+                                </a>
+                            </div>
+                        </div>
+                    <% }) %>
+                    <div class="carousel-controls">
+                        <button type="button" class="btn btn--sm btn--outline prev-btn"><i class="fas fa-chevron-left"></i></button>
+                        <button type="button" class="btn btn--sm btn--outline next-btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            <% } %>
+        <% }) %>
+    <% } else { %>
+        <p>No materials available yet.</p>
+    <% } %>
+</section>
+<!-- Recordings Section -->
+<section id="student-recordings" class="content-section">
+    <h2>Shared Class Recordings</h2>
+    <% if (recordings && recordings.length) { %>
+        <ul style="list-style:none; padding:0;">
+            <% recordings.forEach(function(rec) { %>
+                <li style="margin-bottom: 28px;">
+                    <h4><%= rec.title %> (<%= rec.course_title %>)</h4>
+                    <video controls style="width: 360px; max-width:100%;">
+                        <source src="<%= rec.file_url %>" type="video/webm">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div>
+                        <small>Uploaded: <%= rec.uploaded_at.toLocaleString ? rec.uploaded_at.toLocaleString() : rec.uploaded_at %></small>
+                    </div>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No recordings shared yet.</p>
+    <% } %>
+</section>
+
+
+                <!-- Progress -->
+                <section id="student-progress" class="content-section">
+                    <h2>Progress</h2>
+                    <div class="chart-container">
+                        <canvas id="progressChart" width="400" height="200"></canvas>
+                    </div>
+                </section>
+
+                <!-- Profile -->
+                <section id="student-profile" class="content-section">
+                    <h2>Profile</h2>
+                    <form method="POST" action="/dashboard/student/profile">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" value="<%= profile.name %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="<%= profile.email %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <input type="text" class="form-control" name="department" value="<%= profile.department %>" required>
+                        </div>
+                        <button type="submit" class="btn btn--primary">Update Profile</button>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar navigation switching
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', e => {
+                e.preventDefault();
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+                const section = item.getAttribute('data-section');
+                document.getElementById(section).classList.add('active');
+                document.getElementById('student-page-title').textContent = item.textContent.trim();
+            });
+        });
+        // Progress Chart
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('progressChart');
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [<% courses.forEach(function(course, i){ %><%= i > 0 ? ',' : '' %>'<%= course.title %>'<% }) %>],
+                        datasets: [{
+                            label: 'Progress (%)',
+                            data: [<% courses.forEach(function(course, i){ %><%= i > 0 ? ',' : '' %><%= course.progress || 0 %><% }) %>],
+                            backgroundColor: 'rgba(33, 128, 141, 0.7)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, max: 100 }
+                        }
+                    }
+                });
+            }
+        });
+
+        document.querySelectorAll('.carousel').forEach(carousel => {
+            const items = carousel.querySelectorAll('.carousel-item');
+            let current = 0;
+            function showItem(idx) {
+                items.forEach((item, i) => item.classList.toggle('active', i === idx));
+            }
+            const prevBtn = carousel.querySelector('.prev-btn');
+            const nextBtn = carousel.querySelector('.next-btn');
+            if (prevBtn && nextBtn) {
+                prevBtn.addEventListener('click', () => {
+                    current = (current - 1 + items.length) % items.length;
+                    showItem(current);
+                });
+                nextBtn.addEventListener('click', () => {
+                    current = (current + 1) % items.length;
+                    showItem(current);
+                });
+            }
+        });
+
+        // Mark material as read and update progress via AJAX
+        function markMaterialRead(courseId, materialId) {
+            fetch(`/dashboard/student/course/${courseId}/material/${materialId}/read`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(res => res.json())
+              .then(data => {
+                  // Optionally update progress bar in UI
+                  location.reload();
+              });
+        }
+document.getElementById('browse-courses-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    // Show the enroll section and scroll to it
+    document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById('student-available-courses').classList.add('active');
+    document.getElementById('student-page-title').textContent = 'Available Courses';
+    document.getElementById('student-available-courses').scrollIntoView({ behavior: 'smooth' });
+});
+
+
+    </script>
+</body>
+</html>

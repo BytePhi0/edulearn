@@ -1,0 +1,65 @@
+elearning-platform/
+├── config/
+│   ├── database.js
+│   └── email.js
+├── controllers/
+│   ├── authController.js
+│   ├── dashboardController.js
+│   ├── courseController.js
+│   ├── classController.js
+│   └── attendanceController.js
+├── middleware/
+│   ├── auth.js
+│   ├── roleAuth.js
+│   └── upload.js
+├── models/
+│   ├── User.js
+│   ├── Course.js
+│   ├── LiveClass.js
+│   └── Attendance.js
+├── routes/
+│   ├── auth.js
+│   ├── dashboard.js
+│   ├── courses.js
+│   ├── classes.js
+│   └── attendance.js
+├── utils/
+│   ├── otpGenerator.js
+│   ├── excelGenerator.js
+│   └── meetingService.js
+├── public/
+│   ├── css/
+│   │   ├── style.css
+│   │   ├── dashboard.css
+│   │   └── components.css
+│   ├── js/
+│   │   ├── main.js
+│   │   ├── dashboard.js
+│   │   └── meeting.js
+│   └── uploads/
+├── views/
+│   ├── layouts/
+│   │   ├── header.ejs
+│   │   ├── footer.ejs
+│   │   └── sidebar.ejs
+│   ├── auth/
+│   │   ├── login.ejs
+│   │   ├── register.ejs
+│   │   └── verify-otp.ejs
+│   ├── dashboard/
+│   │   ├── lecturer.ejs
+│   │   └── student.ejs
+│   ├── courses/
+│   │   ├── index.ejs
+│   │   ├── create.ejs
+│   │   └── view.ejs
+│   └── classes/
+│       ├── live.ejs
+│       └── recordings.ejs
+├──
+├── server.js
+└── package.json
+
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmFwcGVhci5pbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmFwcGVhci5pbi92MSIsImV4cCI6OTAwNzE5OTI1NDc0MDk5MSwiaWF0IjoxNzUxNTYxNjEzLCJvcmdhbml6YXRpb25JZCI6MzE5MzgyLCJqdGkiOiJmMWZiMDdkZS0wNDA2LTQzOTUtOTdkNC00ZmRmNmM1ZjkyMDAifQ.uRHUvgdUsY-fYevcQ2YxF33c0b2rA_JbcLDIwirqQ6g

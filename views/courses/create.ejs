@@ -1,0 +1,568 @@
+<%- include('../layouts/header', { title: title }) %>
+
+<div class="dashboard-container">
+    <%- include('../layouts/sidebar', { user, activeNav: 'courses' }) %>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">Create New Course</h1>
+                    <p class="page-subtitle">Set up a new course for your students</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/courses" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Course Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="createCourseForm" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="form-group">
+                                        <label for="title" class="form-label">Course Title *</label>
+                                        <input type="text" 
+                                               id="title" 
+                                               name="title" 
+                                               class="form-control" 
+                                               placeholder="e.g., Introduction to Web Development"
+                                               required>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="course_code" class="form-label">Course Code *</label>
+                                        <input type="text" 
+                                               id="course_code" 
+                                               name="course_code" 
+                                               class="form-control" 
+                                               placeholder="e.g., CS101"
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description" class="form-label">Course Description</label>
+                                <textarea id="description" 
+                                          name="description" 
+                                          class="form-control" 
+                                          rows="4"
+                                          placeholder="Provide a detailed description of what students will learn in this course..."></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="credits" class="form-label">Credits</label>
+                                        <select id="credits" name="credits" class="form-control">
+                                            <option value="1">1 Credit</option>
+                                            <option value="2">2 Credits</option>
+                                            <option value="3" selected>3 Credits</option>
+                                            <option value="4">4 Credits</option>
+                                            <option value="5">5 Credits</option>
+                                            <option value="6">6 Credits</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="semester" class="form-label">Semester</label>
+                                        <select id="semester" name="semester" class="form-control">
+                                            <option value="Fall 2024">Fall 2024</option>
+                                            <option value="Spring 2025" selected>Spring 2025</option>
+                                            <option value="Summer 2025">Summer 2025</option>
+                                            <option value="Fall 2025">Fall 2025</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label for="year" class="form-label">Academic Year</label>
+                                        <select id="year" name="year" class="form-control">
+                                            <option value="2024">2024</option>
+                                            <option value="2025" selected>2025</option>
+                                            <option value="2026">2026</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="thumbnail" class="form-label">Course Thumbnail</label>
+                                <div class="file-upload">
+                                    <input type="file" 
+                                           id="thumbnail" 
+                                           name="thumbnail" 
+                                           accept="image/*">
+                                    <div class="file-upload-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Click to upload course thumbnail or drag and drop</span>
+                                        <small>Recommended size: 800x600px, Max: 2MB</small>
+                                    </div>
+                                </div>
+                                <div id="thumbnailPreview" class="thumbnail-preview d-none">
+                                    <img src="" alt="Thumbnail preview" id="previewImage">
+                                    <button type="button" class="btn btn-sm btn-danger remove-thumbnail">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           id="public_enrollment" 
+                                           name="public_enrollment" 
+                                           class="form-check-input" 
+                                           checked>
+                                    <label for="public_enrollment" class="form-check-label">
+                                        Allow public enrollment (students can self-enroll)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           id="auto_approve" 
+                                           name="auto_approve" 
+                                           class="form-check-input" 
+                                           checked>
+                                    <label for="auto_approve" class="form-check-label">
+                                        Auto-approve enrollment requests
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Create Course
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                                    <i class="fas fa-clock"></i>
+                                    Save as Draft
+                                </button>
+                                <a href="/courses" class="btn btn-outline">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Course Setup Guide</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="setup-checklist">
+                            <div class="checklist-item">
+                                <i class="fas fa-info-circle text-primary"></i>
+                                <div>
+                                    <strong>Course Title</strong>
+                                    <p>Choose a clear, descriptive title that explains what students will learn.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="checklist-item">
+                                <i class="fas fa-code text-primary"></i>
+                                <div>
+                                    <strong>Course Code</strong>
+                                    <p>Use a standard format like "CS101" or "MATH201" for easy identification.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="checklist-item">
+                                <i class="fas fa-image text-primary"></i>
+                                <div>
+                                    <strong>Thumbnail</strong>
+                                    <p>Upload an engaging image that represents your course content.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="checklist-item">
+                                <i class="fas fa-users text-primary"></i>
+                                <div>
+                                    <strong>Enrollment Settings</strong>
+                                    <p>Configure how students can join your course.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="next-steps">
+                            <h5>After Creating Your Course</h5>
+                            <ul class="step-list">
+                                <li>Upload course materials</li>
+                                <li>Schedule live classes</li>
+                                <li>Invite students to enroll</li>
+                                <li>Set up assignments and grading</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Tips for Success</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="tips-list">
+                            <div class="tip-item">
+                                <i class="fas fa-lightbulb text-warning"></i>
+                                <span>Keep course descriptions clear and concise</span>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-lightbulb text-warning"></i>
+                                <span>Use consistent naming conventions</span>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-lightbulb text-warning"></i>
+                                <span>Plan your semester structure in advance</span>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-lightbulb text-warning"></i>
+                                <span>Engage with students regularly</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('createCourseForm');
+    const thumbnailInput = document.getElementById('thumbnail');
+    const thumbnailPreview = document.getElementById('thumbnailPreview');
+    const previewImage = document.getElementById('previewImage');
+    
+    // Handle thumbnail upload
+    thumbnailInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                alert('File size must be less than 2MB');
+                e.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                thumbnailPreview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Remove thumbnail
+    document.querySelector('.remove-thumbnail').addEventListener('click', function() {
+        thumbnailInput.value = '';
+        thumbnailPreview.classList.add('d-none');
+        previewImage.src = '';
+    });
+    
+    // Auto-generate course code from title
+    document.getElementById('title').addEventListener('input', function() {
+        const title = this.value;
+        const codeInput = document.getElementById('course_code');
+        
+        if (!codeInput.value) { // Only auto-generate if code is empty
+            const words = title.split(' ').filter(word => word.length > 0);
+            if (words.length > 0) {
+                let code = '';
+                if (words.length === 1) {
+                    code = words[0].substring(0, 3).toUpperCase() + '101';
+                } else {
+                    code = words.map(word => word.charAt(0).toUpperCase()).join('').substring(0, 3) + '101';
+                }
+                codeInput.value = code;
+            }
+        }
+    });
+    
+    // Form validation
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+        
+        const formData = new FormData(form);
+        
+        try {
+            showFormLoading(true);
+            
+            const response = await fetch('/courses/create', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                showSuccess('Course created successfully!');
+                
+                setTimeout(() => {
+                    window.location.href = '/courses/' + result.courseId;
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showError(error.message || 'Failed to create course');
+            }
+        } catch (error) {
+            showError('Network error. Please try again.');
+        } finally {
+            showFormLoading(false);
+        }
+    });
+    
+    function validateForm() {
+        const title = document.getElementById('title').value.trim();
+        const courseCode = document.getElementById('course_code').value.trim();
+        
+        if (!title) {
+            showError('Course title is required');
+            document.getElementById('title').focus();
+            return false;
+        }
+        
+        if (!courseCode) {
+            showError('Course code is required');
+            document.getElementById('course_code').focus();
+            return false;
+        }
+        
+        if (!/^[A-Z0-9]+$/.test(courseCode)) {
+            showError('Course code should only contain uppercase letters and numbers');
+            document.getElementById('course_code').focus();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function showFormLoading(loading) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        if (loading) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Creating Course...';
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Create Course';
+        }
+    }
+});
+
+async function saveDraft() {
+    const formData = new FormData(document.getElementById('createCourseForm'));
+    formData.append('status', 'draft');
+    
+    try {
+        const response = await fetch('/courses/create', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            showSuccess('Course saved as draft');
+        } else {
+            showError('Failed to save draft');
+        }
+    } catch (error) {
+        showError('Network error. Please try again.');
+    }
+}
+
+function showSuccess(message) {
+    // Implementation depends on your notification system
+    alert('Success: ' + message);
+}
+
+function showError(message) {
+    // Implementation depends on your notification system
+    alert('Error: ' + message);
+}
+</script>
+
+<style>
+.file-upload {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.file-upload input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    background: #f8fafc;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.file-upload:hover .file-upload-label {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+    color: var(--primary-color);
+}
+
+.thumbnail-preview {
+    position: relative;
+    margin-top: 1rem;
+    display: inline-block;
+}
+
+.thumbnail-preview img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.remove-thumbnail {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.setup-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.checklist-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.checklist-item i {
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.checklist-item strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.checklist-item p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.next-steps {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.step-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.step-list li {
+    padding: 0.5rem 0;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.step-list li::before {
+    content: counter(step-counter);
+    counter-increment: step-counter;
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    background: var(--primary-color);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.step-list {
+    counter-reset: step-counter;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<%- include('../layouts/footer') %>

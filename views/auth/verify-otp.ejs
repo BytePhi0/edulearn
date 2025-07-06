@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP - EduConnect</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=school" />
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card card">
+            <div class="card__body">
+                <div class="auth-header">
+                    <h2>Verify OTP</h2>
+                    <p>Enter the 6-digit code sent to your email</p>
+                </div>
+                <% if (error) { %>
+                    <p style="color:red;"><%= error %></p>
+                <% } %>
+                <form method="POST" action="/auth/verify-otp">
+                    <input type="hidden" name="email" value="<%= email %>">
+                    <input type="hidden" name="role" value="<%= role %>">
+                    <input type="hidden" name="mode" value="<%= mode %>">
+                    <div class="form-group">
+                        <label class="form-label" for="otp">OTP</label>
+                        <input type="text" id="otp" name="otp" class="form-control" maxlength="6" required>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">Verify OTP</button>
+                </form>
+                <form method="POST" action="/auth/resend-otp">
+                    <input type="hidden" name="email" value="<%= email %>">
+                    <input type="hidden" name="role" value="<%= role %>">
+                    <input type="hidden" name="mode" value="<%= mode %>">
+                    <button type="submit" class="btn btn--outline btn--full-width mt-8">Resend OTP</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
