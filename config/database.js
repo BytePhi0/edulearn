@@ -1,5 +1,6 @@
 // config/database.js
 const { Pool } = require('pg');
+const format   = require('pg-format');   //  ← new
 require('dotenv').config();
 
 const pool = new Pool({
@@ -8,30 +9,24 @@ const pool = new Pool({
   user:     process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl:      { rejectUnauthorized: false }, // required for Railway public endpoint
+  ssl:      { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 60_000
+  connectionTimeoutMillis: 60_000,
 });
 
-/* ------------------------------------------------------------- */
-/*  mysql2‑style execute() wrapper for pg                        */
-/*  ‑ Converts ? placeholders → $1, $2, …                        */
-/* ------------------------------------------------------------- */
-pool.execute = (sql, params = []) => {
-  let i = 0;
-  const pgSql = sql.replace(/\?/g, () => `$${++i}`);
-  return pool.query(pgSql, params);
-};
+/* ───────────────────────────────────────────────────────────────
+ *  ONE‑LINE ADAPTER
+ *  Turns  mysql‑style  pool.execute(sql,[params])  into safe
+ *  Postgres queries using pg‑format.  Your existing code keeps
+ *  working, Postgres never sees a “?” again.
+ * ────────────────────────────────────────────────────────────── */
+pool.execute = (sql, params = []) =>
+  pool.query(format.withArray(sql.replace(/\?/g, '%L'), params));
+/*  %L → pg‑format escapes & quotes value properly               */
 
-/* ------------------------------------------------------------- */
-/*  Simple connectivity check                                    */
-/* ------------------------------------------------------------- */
 pool.connect()
   .then(c => { console.log('✅ Postgres connected'); c.release(); })
-  .catch(err => {
-    console.error('❌ DB connection failed:', err.message);
-    process.exit(1);
-  });
+  .catch(err => { console.error('❌ DB connection failed:', err.message); process.exit(1); });
 
 module.exports = pool;
