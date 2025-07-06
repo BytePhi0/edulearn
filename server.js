@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
+const PgStore = require('connect-pg-simple')(session);
 require('dotenv').config();
 
 // Import routes
