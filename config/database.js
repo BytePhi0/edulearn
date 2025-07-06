@@ -1,35 +1,40 @@
-// config/database.js  (or whatever the file is called)
-const mysql = require('mysql2');
+// config/database.js
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host:     process.env.DB_HOST,
-  user:     process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port:     process.env.DB_PORT,
+/* -------------------------------------------------------------
+ *  Create a connection pool (very similar to mysql2)
+ * ----------------------------------------------------------- */
+const pool = new Pool({
+  host:     process.env.DB_HOST,      // shuttle.proxy.rlwy.net
+  user:     process.env.DB_USER,      // postgres
+  password: process.env.DB_PASSWORD,  // oPWxBK...Wf
+  database: process.env.DB_NAME,      // railway
+  port:     process.env.DB_PORT,      // 19751
 
-  /* --- valid pool settings --- */
-  waitForConnections: true,
-  connectionLimit:    10,
-  queueLimit:         0,
+  // Railway’s public endpoint requires SSL
+  ssl: { rejectUnauthorized: false },
 
-  /* --- valid timeout option --- */
-  connectTimeout: 60_000   // 60 s  (was “acquireTimeout / timeout”)
+  // pg-specific pool settings
+  max:            10,     // same as connectionLimit
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000
 });
 
-/* ------------------------------------------------------------------ */
-/*  Simple connectivity check                                         */
-/* ------------------------------------------------------------------ */
-pool.getConnection((err, connection) => {
-  if (err) {
+/* -------------------------------------------------------------
+ *  Simple connectivity check
+ * ----------------------------------------------------------- */
+pool.connect()
+  .then(client => {
+    console.log('✅ Postgres connected successfully');
+    client.release();
+  })
+  .catch(err => {
     console.error('❌ Database connection failed:', err.message);
-    process.exit(1);       // stop the app – adjust if you prefer retry logic
-  } else {
-    console.log('✅ Database connected successfully');
-    connection.release();
-  }
-});
+    process.exit(1);
+  });
 
-/* Export a promise‑wrapped pool so you can use async/await elsewhere */
-module.exports = pool.promise();
+/* -------------------------------------------------------------
+ *  Export the pool – pg queries already return Promises
+ * ----------------------------------------------------------- */
+module.exports = pool;
