@@ -20,7 +20,7 @@ const app = express();
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'"],
+            defaultSrc: ["'self'"], // You can also add "blob:" here if you want
             styleSrc: [
                 "'self'",
                 "'unsafe-inline'",
@@ -45,11 +45,15 @@ app.use(helmet({
                 "https://meet.google.com",
                 "https://your-bbb-server.com",
                 "https://edu-connect.whereby.com",
-                "https://excalidraw.com"
-            ]
+                "https://excalidraw.com",
+                "https://view.officeapps.live.com",
+            ],
+            // ADD THIS LINE:
+            mediaSrc: ["'self'", "blob:"]
         }
     }
 }));
+
 
 // Rate limiting
 const limiter = rateLimit({
@@ -91,7 +95,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/recordings', express.static(path.join(__dirname, 'public/recordings')));
 // Logging
 app.use(morgan('combined'));
 
@@ -126,4 +131,14 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
     console.log(`📱 Environment: ${process.env.NODE_ENV}`);
+});
+
+// Add this at the end of your Express app setup (after all routes)
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal Server Error'
+  });
 });

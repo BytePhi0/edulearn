@@ -43,7 +43,7 @@
                 <header class="main-header">
                     <div class="header-left">
                         <h1 id="page-title">Dashboard</h1>
-                        <p id="page-subtitle">Welcome back, <%= user.name %></p>
+                        <p id="page-subtitle">Welcome back, Lecturer <%= user.name %></p>
                     </div>
                     <div class="header-right">
                         <form method="POST" action="/dashboard/lecturer/live-class" style="display:inline;">
@@ -92,7 +92,7 @@
   <div class="card__body" id="recent-activity-list">
     <% if (recentActivity && recentActivity.length) { %>
       <% recentActivity.forEach(function(act, idx) { %>
-        <div class="activity-item" style="<%= idx >= 4 ? 'display:none;' : '' %>">
+        <div class="activity-item"<% if (idx >= 4) { %> style="display:none;"<% } %>>
           <i class="fas <%= act.icon %>"></i>
           <span><%= act.text %></span>
           <small><%= act.time %></small>
@@ -160,6 +160,7 @@
                         </tbody>
                     </table>
                 </section>
+
 <!-- Live Classes Section -->
 <section id="lecturer-live-classes" class="content-section">
     <h2>Live Classes</h2>
@@ -240,7 +241,7 @@
                     <h2>Interactive Whiteboard</h2>
                     <p>
                         Use the whiteboard below for explanations, diagrams, and live teaching.<br>
-                        <b>Tip:</b> To share with students, <b>share your screen</b> during a live class, or use Excalidraw’s collaboration features.
+                        <b>Tip:</b> To share with students, <b>share your screen</b> during a live class, or use Excalidraw's collaboration features.
                     </p>
                     <div style="border:2px solid var(--color-primary); border-radius:12px; overflow:hidden; margin-top:16px;">
                         <iframe
@@ -255,6 +256,7 @@
                         <b>Real-time collaboration:</b> Click "Live Collaboration" in Excalidraw to invite students, or export your board as an image.
                     </p>
                 </section>
+
 <!-- Attendance Section -->
 <section id="lecturer-attendance" class="content-section">
     <h2>Attendance</h2>
@@ -302,299 +304,47 @@
         <% } %>
     </div>
 </section>
-
-
-              <!-- Recordings Section -->
-<section id="lecturer-recordings" class="content-section">
-  <h2 style="color:#21808d; font-weight:700; margin-bottom:20px;">Recordings</h2>
+<!-- Recordings Section -->
+<section id="lecturer-recordings" class="content-section" style="padding:24px; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="margin-bottom:16px; font-size:1.5em; color:#21808d;">Recordings</h2>
   
-  <div class="course-select-bar">
-    <label for="share-course-id" class="course-select-label">
-      <i class="fas fa-book" style="margin-right:6px;"></i>
-      Select Course:
+  <div style="display:flex; align-items:center; margin-bottom:16px;">
+    <label for="share-course-id" style="margin-right:8px; font-weight:600; color:#555;">
+      <i class="fas fa-book" style="margin-right:4px; color:#21808d;"></i>Select Course:
     </label>
-    <select id="share-course-id" class="course-select">
-      <% courses.forEach(function(course){ %>
+    <select id="share-course-id" style="padding:6px 8px; border:1px solid #ccc; border-radius:4px; font-size:1em;">
+      <% courses.forEach(course => { %>
         <option value="<%= course.id %>"><%= course.title %></option>
       <% }) %>
     </select>
   </div>
   
-  <div>
-    <button id="start-recording" class="btn btn--primary"><i class="fas fa-circle"></i> Start Recording</button>
-    <button id="stop-recording" class="btn btn--error" disabled><i class="fas fa-stop"></i> Stop Recording</button>
+  <div style="margin-bottom:16px;">
+    <button id="start-recording" class="btn btn--primary" style="padding:8px 12px; margin-right:8px; border:none; border-radius:4px; background:#21808d; color:#fff; font-size:1em; cursor:pointer;">
+      <i class="fas fa-circle" style="margin-right:4px;"></i> Start Recording
+    </button>
+    <button id="stop-recording" class="btn btn--error" disabled style="padding:8px 12px; border:none; border-radius:4px; background:#d32f2f; color:#fff; font-size:1em; cursor:not-allowed;">
+      <i class="fas fa-stop" style="margin-right:4px;"></i> Stop Recording
+    </button>
   </div>
   
-  <div id="recordings-list" style="margin-top:32px;">
-    <h4 style="color:#21808d; margin-bottom:10px;">Your Recordings (This Session)</h4>
-    <ul id="recordings-ul" style="list-style:none; padding-left:0;"></ul>
-    <h4 style="color:#21808d; margin-top:32px; margin-bottom:10px;">Uploaded Recordings</h4>
+  <div id="recordings-list" style="margin-bottom:16px;">
+    <h4 style="margin-bottom:8px; font-size:1.2em; color:#333;">Your Recordings (This Session)</h4>
+   <ul id="recordings-ul"
+    style="list-style:none; padding-left:0; border:1px solid #e0e0e0; border-radius:4px; overflow-y:auto; max-height:400px; margin-bottom:16px;">
+  <!-- items will be inserted here -->
+</ul>
+
+    <h4 style="margin-bottom:8px; font-size:1.2em; color:#333;">Uploaded Recordings</h4>
+      <!-- items will be inserted here -->
     <ul id="uploaded-recordings-ul" style="list-style:none; padding-left:0;"></ul>
   </div>
   
-  <p style="margin-top:20px; color:#888; font-size:1em;">
-    <b>Note:</b> Session recordings are lost on refresh. Uploaded recordings remain always.
+  <p style="margin-top:20px; color:#666; font-size:0.9em;">
+    <strong>Note:</strong> Session recordings are lost on refresh. Uploaded recordings remain always.
   </p>
 </section>
 
-<style>
-  .recording-item {
-    background: #f7f9fa;
-    border-radius: 8px;
-    padding: 18px 12px;
-    margin-bottom: 18px;
-    box-shadow: 0 2px 8px rgba(33,128,141,0.07);
-    display: flex;
-    align-items: flex-start;
-    gap: 18px;
-  }
-  .recording-item video {
-    width: 420px;
-    max-width: 98vw;
-    height: 240px;
-    border-radius: 8px;
-    background: #000;
-    display: block;
-  }
-  .recording-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .recording-title {
-    font-weight: bold;
-    font-size: 1.1em;
-    margin-bottom: 4px;
-  }
-  .recording-actions button, .recording-actions a {
-    margin-right: 10px;
-    margin-bottom: 6px;
-  }
-  @media (max-width: 600px) {
-    .recording-item { flex-direction: column; align-items: stretch; }
-    .recording-item video { width: 100%; height: auto; }
-  }
-</style>
-
-<script>
-let mediaRecorder, recordedChunks = [];
-let recordings = [];
-
-// Fetch uploaded recordings on page load
-async function fetchUploadedRecordings() {
-  const res = await fetch('/dashboard/lecturer/recordings');
-  const uploaded = await res.json();
-  const ul = document.getElementById('uploaded-recordings-ul');
-  ul.innerHTML = '';
-  uploaded.forEach(rec => {
-    const li = document.createElement('li');
-    li.className = 'recording-item';
-
-    // Video preview
-    const video = document.createElement('video');
-    video.controls = true;
-    video.src = rec.file_url;
-    video.preload = 'metadata';
-    video.setAttribute('preload', 'metadata');
-    video.style.objectFit = 'cover';
-
-    // Info and actions
-    const infoDiv = document.createElement('div');
-    infoDiv.className = 'recording-info';
-
-    const title = document.createElement('div');
-    title.className = 'recording-title';
-    title.textContent = rec.title || 'Untitled Recording';
-
-    const actions = document.createElement('div');
-    actions.className = 'recording-actions';
-
-    // Download link
-    const download = document.createElement('a');
-    download.href = rec.file_url;
-    download.download = (rec.title || 'recording') + '.webm';
-    download.textContent = 'Download';
-    download.className = 'btn btn--sm btn--outline';
-
-    // Remove button
-    const remove = document.createElement('button');
-    remove.textContent = 'Remove';
-    remove.className = 'btn btn--sm btn--error';
-    remove.onclick = async () => {
-      if (confirm('Are you sure you want to remove this recording?')) {
-        await fetch('/dashboard/lecturer/recordings/delete/' + rec.id, { method: 'DELETE' });
-        fetchUploadedRecordings();
-      }
-    };
-
-    // Share status
-    const shared = document.createElement('span');
-    shared.textContent = rec.shared_with_students ? 'Shared with Students' : 'Not Shared';
-    shared.style.color = rec.shared_with_students ? 'green' : 'orange';
-    shared.style.marginLeft = '10px';
-
-    // Share button (if not shared yet)
-    if (!rec.shared_with_students) {
-      const share = document.createElement('button');
-      share.textContent = 'Share with Students';
-      share.className = 'btn btn--sm btn--primary';
-      share.style.marginLeft = '10px';
-      share.onclick = async () => {
-        await fetch('/dashboard/lecturer/recordings/share/' + rec.id, { method: 'POST' });
-        fetchUploadedRecordings();
-      };
-      actions.appendChild(share);
-    }
-
-    actions.appendChild(download);
-    actions.appendChild(remove);
-    actions.appendChild(shared);
-
-    infoDiv.appendChild(title);
-    infoDiv.appendChild(actions);
-
-    li.appendChild(video);
-    li.appendChild(infoDiv);
-    ul.appendChild(li);
-  });
-}
-
-// Session recordings (not uploaded)
-function updateRecordingsList() {
-  const ul = document.getElementById('recordings-ul');
-  ul.innerHTML = '';
-  recordings.forEach((rec, idx) => {
-    const li = document.createElement('li');
-    li.className = 'recording-item';
-
-    // Video preview
-    const video = document.createElement('video');
-    video.controls = true;
-    video.src = rec.url;
-    video.setAttribute('preload', 'metadata');
-    video.style.objectFit = 'cover';
-
-    // Info and actions
-    const infoDiv = document.createElement('div');
-    infoDiv.className = 'recording-info';
-
-    const title = document.createElement('div');
-    title.className = 'recording-title';
-    title.textContent = 'New Recording ' + (idx + 1);
-
-    const actions = document.createElement('div');
-    actions.className = 'recording-actions';
-
-    // Download link
-    const download = document.createElement('a');
-    download.href = rec.url;
-    download.download = 'class-recording-' + (idx+1) + '.webm';
-    download.textContent = 'Download';
-    download.className = 'btn btn--sm btn--outline';
-
-    // Upload button
-    const upload = document.createElement('button');
-    upload.textContent = 'Upload';
-    upload.className = 'btn btn--sm btn--primary';
-    upload.onclick = () => {
-      const blob = rec.blob;
-      const formData = new FormData();
-      const selectedCourseId = document.getElementById('share-course-id').value;
-      const title = prompt('Enter a title for this recording:', 'Class Recording');
-      formData.append('recording', blob, 'class-recording.webm');
-      formData.append('course_id', selectedCourseId);
-      if (title) formData.append('title', title);
-
-      fetch('/dashboard/lecturer/recordings/upload', {
-        method: 'POST',
-        body: formData
-      }).then(res => {
-        if (res.ok) {
-          alert('Recording uploaded!');
-          fetchUploadedRecordings();
-        } else {
-          alert('Failed to upload recording.');
-        }
-      });
-    };
-
-    // Remove button
-    const remove = document.createElement('button');
-    remove.textContent = 'Remove';
-    remove.className = 'btn btn--sm btn--error';
-    remove.onclick = () => {
-      recordings.splice(idx, 1);
-      updateRecordingsList();
-    };
-
-    actions.appendChild(download);
-    actions.appendChild(upload);
-    actions.appendChild(remove);
-
-    infoDiv.appendChild(title);
-    infoDiv.appendChild(actions);
-
-    li.appendChild(video);
-    li.appendChild(infoDiv);
-    ul.appendChild(li);
-  });
-}
-
-document.getElementById('start-recording').onclick = async function() {
-  const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-  let micStream;
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (err) {
-    alert('Could not access microphone. Only system audio will be recorded.');
-  }
-
-  let tracks = [...screenStream.getVideoTracks()];
-  if (micStream) {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const dest = ctx.createMediaStreamDestination();
-    if (screenStream.getAudioTracks().length) {
-      const sysSource = ctx.createMediaStreamSource(screenStream);
-      sysSource.connect(dest);
-    }
-    const micSource = ctx.createMediaStreamSource(micStream);
-    micSource.connect(dest);
-    dest.stream.getAudioTracks().forEach(track => tracks.push(track));
-  } else if (screenStream.getAudioTracks().length) {
-    tracks = tracks.concat(screenStream.getAudioTracks());
-  }
-  const mixedStream = new MediaStream(tracks);
-
-  mediaRecorder = new MediaRecorder(mixedStream);
-  recordedChunks = [];
-
-  mediaRecorder.ondataavailable = function(e) {
-    if (e.data.size > 0) recordedChunks.push(e.data);
-  };
-  mediaRecorder.onstop = function() {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    recordings.push({ url, blob });
-    updateRecordingsList();
-  };
-
-  mediaRecorder.start();
-  document.getElementById('start-recording').disabled = true;
-  document.getElementById('stop-recording').disabled = false;
-};
-
-document.getElementById('stop-recording').onclick = function() {
-  mediaRecorder.stop();
-  document.getElementById('start-recording').disabled = false;
-  document.getElementById('stop-recording').disabled = true;
-};
-
-// On page load, fetch uploaded recordings
-document.addEventListener('DOMContentLoaded', function() {
-  fetchUploadedRecordings();
-});
-</script>
 
                 <!-- Profile Section -->
                 <section id="lecturer-profile" class="content-section">
@@ -620,6 +370,225 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <script>
+        let mediaRecorder, recordedChunks = [];
+        let recordings = [];
+
+        // Fetch uploaded recordings on page load
+        async function fetchUploadedRecordings() {
+          const res = await fetch('/dashboard/lecturer/recordings');
+          const uploaded = await res.json();
+          const ul = document.getElementById('uploaded-recordings-ul');
+          ul.innerHTML = '';
+          uploaded.forEach(rec => {
+            const li = document.createElement('li');
+            li.className = 'recording-item';
+            li.setAttribute('data-id', rec.id); // FIXED: Add data-id attribute
+
+            // Video preview
+            const video = document.createElement('video');
+            video.controls = true;
+            video.src = rec.file_url;
+            video.preload = 'metadata';
+            video.style.objectFit = 'cover';
+
+            // Info and actions
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'recording-info';
+
+            const title = document.createElement('div');
+            title.className = 'recording-title';
+            title.textContent = rec.title || 'Untitled Recording';
+
+            const actions = document.createElement('div');
+            actions.className = 'recording-actions';
+
+            // Download link
+            const download = document.createElement('a');
+            download.href = rec.file_url;
+            download.download = (rec.title || 'recording') + '.webm';
+            download.textContent = 'Download';
+            download.className = 'btn btn--sm btn--outline';
+
+            // Remove button with direct event listener
+// In fetchUploadedRecordings()
+const remove = document.createElement('button');
+remove.type = 'button';
+remove.textContent = 'Remove';
+remove.className = 'btn btn--sm btn--error';
+remove.onclick = async (e) => {
+  e.preventDefault();
+  if (confirm('Are you sure you want to remove this recording?')) {
+    await fetch('/dashboard/lecturer/recordings/delete/' + rec.id, { method: 'DELETE' });
+    fetchUploadedRecordings();
+  }
+};
+
+
+// Share status
+const shared = document.createElement('span');
+shared.textContent = rec.shared_with_students ? 'Shared with Students' : 'Not Shared';
+shared.style.color = rec.shared_with_students ? 'green' : 'orange';
+shared.style.marginLeft = '10px';
+
+// Share button (if not shared yet) with direct event listener
+if (!rec.shared_with_students) {
+  const share = document.createElement('button');
+  share.type = 'button'; // Prevents form submission/reload
+  share.textContent = 'Share with Students';
+  share.className = 'btn btn--sm btn--primary';
+  share.style.marginLeft = '10px';
+  share.onclick = async (e) => {
+    e.preventDefault();
+    await fetch('/dashboard/lecturer/recordings/share/' + rec.id, { method: 'POST' });
+    fetchUploadedRecordings();
+  };
+  actions.appendChild(share);
+}
+
+actions.appendChild(download);
+actions.appendChild(remove);
+actions.appendChild(shared);
+
+infoDiv.appendChild(title);
+infoDiv.appendChild(actions);
+
+li.appendChild(video);
+li.appendChild(infoDiv);
+ul.appendChild(li);
+          });
+        }
+
+        // Session recordings (not uploaded)
+        function updateRecordingsList() {
+          const ul = document.getElementById('recordings-ul');
+          ul.innerHTML = '';
+          recordings.forEach((rec, idx) => {
+            const li = document.createElement('li');
+            li.className = 'recording-item';
+
+            // Video preview
+            const video = document.createElement('video');
+            video.controls = true;
+            video.src = rec.url;
+            video.setAttribute('preload', 'metadata');
+            video.style.objectFit = 'cover';
+
+            // Info and actions
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'recording-info';
+
+            const title = document.createElement('div');
+            title.className = 'recording-title';
+            title.textContent = 'New Recording ' + (idx + 1);
+
+            const actions = document.createElement('div');
+            actions.className = 'recording-actions';
+
+            // Download link
+            const download = document.createElement('a');
+            download.href = rec.url;
+            download.download = 'class-recording-' + (idx+1) + '.webm';
+            download.textContent = 'Download';
+            download.className = 'btn btn--sm btn--outline';
+
+            // Upload button
+            const upload = document.createElement('button');
+            upload.textContent = 'Upload';
+            upload.className = 'btn btn--sm btn--primary';
+            upload.onclick = () => {
+              const blob = rec.blob;
+              const formData = new FormData();
+              const selectedCourseId = document.getElementById('share-course-id').value;
+              const title = prompt('Enter a title for this recording:', 'Class Recording');
+              formData.append('recording', blob, 'class-recording.webm');
+              formData.append('course_id', selectedCourseId);
+              if (title) formData.append('title', title);
+
+              fetch('/dashboard/lecturer/recordings/upload', {
+                method: 'POST',
+                body: formData
+              }).then(res => {
+                if (res.ok) {
+                  alert('Recording uploaded!');
+                  fetchUploadedRecordings();
+                } else {
+                  alert('Failed to upload recording.');
+                }
+              });
+            };
+
+   // In updateRecordingsList()
+const remove = document.createElement('button');
+remove.type = 'button';
+remove.textContent = 'Remove';
+remove.className = 'btn btn--sm btn--error';
+remove.onclick = () => {
+  recordings.splice(idx, 1);
+  updateRecordingsList();
+};
+
+            actions.appendChild(download);
+            actions.appendChild(upload);
+            actions.appendChild(remove);
+
+            infoDiv.appendChild(title);
+            infoDiv.appendChild(actions);
+
+            li.appendChild(video);
+            li.appendChild(infoDiv);
+            ul.appendChild(li);
+          });
+        }
+
+        document.getElementById('start-recording').onclick = async function() {
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          let micStream;
+          try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (err) {
+            alert('Could not access microphone. Only system audio will be recorded.');
+          }
+
+          let tracks = [...screenStream.getVideoTracks()];
+          if (micStream) {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const dest = ctx.createMediaStreamDestination();
+            if (screenStream.getAudioTracks().length) {
+              const sysSource = ctx.createMediaStreamSource(screenStream);
+              sysSource.connect(dest);
+            }
+            const micSource = ctx.createMediaStreamSource(micStream);
+            micSource.connect(dest);
+            dest.stream.getAudioTracks().forEach(track => tracks.push(track));
+          } else if (screenStream.getAudioTracks().length) {
+            tracks = tracks.concat(screenStream.getAudioTracks());
+          }
+          const mixedStream = new MediaStream(tracks);
+
+          mediaRecorder = new MediaRecorder(mixedStream);
+          recordedChunks = [];
+
+          mediaRecorder.ondataavailable = function(e) {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+          };
+          mediaRecorder.onstop = function() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            recordings.push({ url, blob });
+            updateRecordingsList();
+          };
+
+          mediaRecorder.start();
+          document.getElementById('start-recording').disabled = true;
+          document.getElementById('stop-recording').disabled = false;
+        };
+
+        document.getElementById('stop-recording').onclick = function() {
+          mediaRecorder.stop();
+          document.getElementById('start-recording').disabled = false;
+          document.getElementById('stop-recording').disabled = true;
+        };
+
         // Sidebar navigation switching
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', e => {
@@ -632,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('page-title').textContent = item.textContent.trim();
             });
         });
+
         // Chart.js example initialization
         document.addEventListener('DOMContentLoaded', () => {
             const ctx = document.getElementById('attendanceChart');
@@ -657,23 +627,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
-        });
-document.addEventListener('DOMContentLoaded', () => {
-  const items = document.querySelectorAll('#recent-activity-list .activity-item');
-  const btn = document.getElementById('show-more-activity');
-  let start = 0;
-  const pageSize = 4;
-  if (btn) {
-    btn.addEventListener('click', () => {
-      start += pageSize;
-      items.forEach((item, idx) => {
-        item.style.display = (idx >= start && idx < start + pageSize) ? '' : 'none';
-      });
-      if (start + pageSize >= items.length) btn.style.display = 'none';
-    });
-  }
-});
 
+            // Fetch uploaded recordings on page load
+            fetchUploadedRecordings();
+        });
+
+        // Recent activity pagination
+        document.addEventListener('DOMContentLoaded', () => {
+          const items = document.querySelectorAll('#recent-activity-list .activity-item');
+          const btn = document.getElementById('show-more-activity');
+          let start = 0;
+          const pageSize = 4;
+          if (btn) {
+            btn.addEventListener('click', () => {
+              start += pageSize;
+              items.forEach((item, idx) => {
+                item.style.display = (idx >= start && idx < start + pageSize) ? '' : 'none';
+              });
+              if (start + pageSize >= items.length) btn.style.display = 'none';
+            });
+          }
+        });
     </script>
 </body>
 </html>

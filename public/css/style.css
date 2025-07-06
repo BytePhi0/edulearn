@@ -1029,7 +1029,7 @@ select.form-control {
 }
 
 /* Progress Components */
-.progress-list {
+/* .progress-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
@@ -1063,7 +1063,7 @@ select.form-control {
 .progress-item span:last-child {
     font-weight: var(--font-weight-bold);
     color: var(--color-primary);
-}
+} */
 
 /* Courses Grid */
 /* .courses-grid {
@@ -1958,3 +1958,77 @@ select.form-control {
   .course-select:focus {
     border: 1.5px solid #21808d;
   }
+
+  .course-material-frame {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(33,128,141,0.08);
+    padding: 32px 28px;
+    margin-bottom: 32px;
+    position: relative;
+}
+.material-carousel {
+    min-height: 220px;
+    position: relative;
+}
+.material-slide {
+    transition: opacity 0.3s, transform 0.3s;
+}
+.material-slide:not(.active) {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    left: 0; right: 0;
+}
+.material-slide.active {
+    opacity: 1;
+    position: relative;
+}
+#uploaded-recordings-ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafbfc;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(33,128,141,0.05);
+}
+#uploaded-recordings-ul li {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 18px 14px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+  transition: background 0.2s;
+}
+#uploaded-recordings-ul li:last-child {
+  border-bottom: none;
+}
+#uploaded-recordings-ul video {
+  width: 220px;
+  max-width: 98vw;
+  height: 124px;
+  border-radius: 8px;
+  background: #000;
+  display: block;
+  object-fit: cover;
+}
+#uploaded-recordings-ul .recording-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#uploaded-recordings-ul .recording-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #21808d;
+}
+#uploaded-recordings-ul .recording-actions button,
+#uploaded-recordings-ul .recording-actions a {
+  margin-right: 10px;
+  margin-bottom: 6px;
+}
