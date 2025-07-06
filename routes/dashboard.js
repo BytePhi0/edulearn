@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');  // Assuming you're using PostgreSQL now
+const pool = require('../config/database');
+ // Assuming you're using PostgreSQL now
 // const pool = require('../config/database');
 const axios = require('axios');
 const multer = require('multer');
