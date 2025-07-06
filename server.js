@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const PgStore = require('connect-pg-simple')(session);
-const db = require('./config/database'); // ✅ Add this line
+// const db = require('./config/database'); // ✅ Add this line
 require('dotenv').config();
 
 // Import routes
@@ -81,7 +81,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session configuration
 app.use(session({
-    store: new PgStore({ pool: db }), 
+    // store: new PgStore({ pool: db }), 
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -129,6 +129,21 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
     res.status(404).render('404', { title: 'Page Not Found' });
 });
+// Add this at the end of your Express app setup (after all routes)
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  console.error(err.stack);
+
+  // if a route already sent something, delegate to Express’ built‑in handler
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal Server Error'
+  });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -136,12 +151,3 @@ app.listen(PORT, () => {
     console.log(`📱 Environment: ${process.env.NODE_ENV}`);
 });
 
-// Add this at the end of your Express app setup (after all routes)
-app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    error: err.message || 'Internal Server Error'
-  });
-});
