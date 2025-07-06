@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');
 const PgStore = require('connect-pg-simple')(session);
+const db = require('./config/database'); // ✅ Add this line
 require('dotenv').config();
 
 // Import routes
