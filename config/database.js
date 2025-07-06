@@ -2,39 +2,23 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-/* -------------------------------------------------------------
- *  Create a connection pool (very similar to mysql2)
- * ----------------------------------------------------------- */
 const pool = new Pool({
-  host:     process.env.DB_HOST,      // shuttle.proxy.rlwy.net
-  user:     process.env.DB_USER,      // postgres
-  password: process.env.DB_PASSWORD,  // oPWxBK...Wf
-  database: process.env.DB_NAME,      // railway
-  port:     process.env.DB_PORT,      // 19751
-
-  // Railway’s public endpoint requires SSL
-  ssl: { rejectUnauthorized: false },
-
-  // pg-specific pool settings
-  max:            10,     // same as connectionLimit
+  host:     process.env.DB_HOST,
+  port:     process.env.DB_PORT,
+  user:     process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl:      { rejectUnauthorized: false },
+  max: 10,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 10_000
+  connectionTimeoutMillis: 60_000   // ⬅️ bump to 60 s
 });
 
-/* -------------------------------------------------------------
- *  Simple connectivity check
- * ----------------------------------------------------------- */
 pool.connect()
-  .then(client => {
-    console.log('✅ Postgres connected successfully');
-    client.release();
-  })
+  .then(c => { console.log('✅ Postgres connected'); c.release(); })
   .catch(err => {
     console.error('❌ Database connection failed:', err.message);
     process.exit(1);
   });
 
-/* -------------------------------------------------------------
- *  Export the pool – pg queries already return Promises
- * ----------------------------------------------------------- */
 module.exports = pool;
