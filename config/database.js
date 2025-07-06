@@ -8,18 +8,30 @@ const pool = new Pool({
   user:     process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl:      { rejectUnauthorized: false },
+  ssl:      { rejectUnauthorized: false }, // required for Railway public endpoint
   max: 10,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 60_000
 });
 
-// ✅ add this one‑liner ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑
-pool.execute = (...args) => pool.query(...args);   // mysql2‑style alias
-// ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑
+/* ------------------------------------------------------------- */
+/*  mysql2‑style execute() wrapper for pg                        */
+/*  ‑ Converts ? placeholders → $1, $2, …                        */
+/* ------------------------------------------------------------- */
+pool.execute = (sql, params = []) => {
+  let i = 0;
+  const pgSql = sql.replace(/\?/g, () => `$${++i}`);
+  return pool.query(pgSql, params);
+};
 
+/* ------------------------------------------------------------- */
+/*  Simple connectivity check                                    */
+/* ------------------------------------------------------------- */
 pool.connect()
   .then(c => { console.log('✅ Postgres connected'); c.release(); })
-  .catch(err => { console.error('❌ DB connection failed:', err.message); process.exit(1); });
+  .catch(err => {
+    console.error('❌ DB connection failed:', err.message);
+    process.exit(1);
+  });
 
 module.exports = pool;
