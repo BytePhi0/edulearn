@@ -11,14 +11,15 @@ const pool = new Pool({
   ssl:      { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 60_000   // ⬅️ bump to 60 s
+  connectionTimeoutMillis: 60_000
 });
+
+// ✅ add this one‑liner ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑
+pool.execute = (...args) => pool.query(...args);   // mysql2‑style alias
+// ‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑
 
 pool.connect()
   .then(c => { console.log('✅ Postgres connected'); c.release(); })
-  .catch(err => {
-    console.error('❌ Database connection failed:', err.message);
-    process.exit(1);
-  });
+  .catch(err => { console.error('❌ DB connection failed:', err.message); process.exit(1); });
 
 module.exports = pool;
