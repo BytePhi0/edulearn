@@ -10,7 +10,6 @@ const fs = require('fs');
 const WHEREBY_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmFwcGVhci5pbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmFwcGVhci5pbi92MSIsImV4cCI6OTAwNzE5OTI1NDc0MDk5MSwiaWF0IjoxNzUxNTYxNjEzLCJvcmdhbml6YXRpb25JZCI6MzE5MzgyLCJqdGkiOiJmMWZiMDdkZS0wNDA2LTQzOTUtOTdkNC00ZmRmNmM1ZjkyMDAifQ.uRHUvgdUsY-fYevcQ2YxF33c0b2rA_JbcLDIwirqQ6g';
 
 
-
 // ====== MULTER SETUP ======
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
